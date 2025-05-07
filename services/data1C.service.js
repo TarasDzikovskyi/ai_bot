@@ -9,7 +9,7 @@ const connectTo1C = async (data) => {
             rejectUnauthorized: false
         });
 
-        const response = await axios.post('https://app.euro-forwarding.com/ef_23/hs/ExchangeServices', data,
+        const response = await axios.post('https://app.euro-forwarding.com/v8line/hs/ExchangeServices', data,
             {
                 httpAgent,
                 headers: {
@@ -34,10 +34,10 @@ module.exports.connectTo1C = connectTo1C;
 
 const data = {
     "type": 'LCL_Settlement',
-    "Origin": 'Hong Kong',
-    "Destination": 'Одеса',
-    "Volume": '3000',
-    "Weight": '50',
+    "Origin": 'Гонконг',
+    "Destination": 'Київ',
+    "Volume": '12',
+    "Weight": '2000',
 }
 
 connectTo1C(data)
