@@ -34,8 +34,8 @@ module.exports.connectTo1C = connectTo1C;
 
 const data = {
     "type": 'LCL_Settlement',
-    "Origin": 'Гонконг',
-    "Destination": 'Київ',
+    "Origin": 'HONG KONG',
+    "Destination": 'ODESSA',
     "Volume": '12',
     "Weight": '2000',
 }
