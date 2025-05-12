@@ -11,49 +11,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
  * @param {string} text - The input text
  * @returns {string} - The generated prompt
  */
-// function getPrompt(text) {
-//     const prompt = `
-// Ти — досвідчений логістичний асистент. Твоя задача — уважно проаналізувати текст замовлення на перевезення вантажу та витягнути з нього ключову інформацію про маршрут і характеристики вантажу.
-//
-// 🔍 Найважливіше:
-// - Обов'язково перевір, чи вказаний порт у полі "from" є реальним, міжнародно визнаним портом (наприклад, через бази даних портів).
-// - Якщо такого порту **не існує**, або назва написана неправильно, або не вказаний саме порт (а не просто місто) — поверни **null**: 'null'. Це обовʼязкова умова.
-// - Так само обов'язково перевір, чи вказане місце призначення в полі "to" (місто або країна) **дійсно існує**. Якщо воно не ідентифікується — також поверни **null** 'null'.
-//
-// 📦 На основі наданого тексту поверни **тільки** валідний JSON з наступною структурою:
-//
-// {
-//   "from": {
-//     "value": "Міжнародна назва порту завантаження (англійською, лише порт)",
-//     "confidence": true | false
-//   },
-//   "to": {
-//     "value": "Місце розвантаження або доставки (англійською)",
-//     "confidence": true | false
-//   },
-//   "weight": {
-//     "value": "Вага вантажу у кілограмах (тільки число або null)",
-//     "confidence": true | false
-//   },
-//   "volume": {
-//     "value": "Обʼєм вантажу у кубічних метрах (тільки число або null)",
-//     "confidence": true | false
-//   }
-// }
-//
-// 📌 Додаткові умови:
-// - Якщо інформація не згадується або нечітка — вкажи "value": null і "confidence": false.
-// - Якщо одиниці інші (тонни, літри, фут³ тощо) — конвертуй у кг або м³.
-// - Позначай "confidence": true тільки якщо впевнений на 100%.
-// - **Ніколи** не додавай жодних пояснень — лише JSON або порожній об'єкт.
-// - Якщо порт "from" або місце "to" не валідне або не існує — **відповідь має бути тільки** 'null'.
-//
-// Ось текст:
-// """${text}"""
-// `;
-//
-//     return prompt;
-// }
+
 
 function getPrompt(text) {
     const portList = ports.map(port => `"${port.value}"`).join(', ');
@@ -179,7 +137,13 @@ async function handleAudio(bot, msg, chatId, userState) {
                 sourceType: 'audio'
             });
 
-            await bot.sendMessage(chatId, 'Не вдалося отримати всі дані з аудіо. Змінити?', {
+            const errorMessage = `Не вдалося отримати всі дані з аудіо. Змінити?
+${(!parsed.from.value || !parsed.from.confidence) ? 'Поле "from" (порт відправлення) некоректне.' : ''}
+${(!parsed.to.value || !parsed.to.confidence) ? 'Поле "to" (місто призначення) некоректне.' : ''}
+${(!parsed.weight.value || !parsed.weight.confidence) ? 'Поле "weight" (вага) некоректне.' : ''}
+${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "volume" (об\'єм) некоректне.' : ''}`;
+
+            await bot.sendMessage(chatId, errorMessage, {
                 reply_markup: {
                     inline_keyboard: [
                         [{ text: 'Так', callback_data: 'edit_yes' }, { text: 'Ні', callback_data: 'edit_no' }]
@@ -223,8 +187,10 @@ async function handleText(bot, text, chatId) {
         await bot.sendMessage(chatId, reply);
         const obj = JSON.parse(reply);
         await bot.sendMessage(chatId, `Прорахунок неможливий.
-${(!obj.from.value || !obj.from.confidence || !obj.to.value || !obj.to.confidence) ? 'Перевірте список доступних міст і портів.' : ''}
-${(!obj.weight.value || !obj.weight.confidence || !obj.volume.value || !obj.volume.confidence) ? 'Дані ваги чи об`єму некоректні.' : ''}
+${(!obj.from.value || !obj.from.confidence) ? 'Поле "from" (порт відправлення) некоректне.' : ''}
+${(!obj.to.value || !obj.to.confidence) ? 'Поле "to" (місто призначення) некоректне.' : ''}
+${(!obj.weight.value || !obj.weight.confidence) ? 'Поле "weight" (вага) некоректне.' : ''}
+${(!obj.volume.value || !obj.volume.confidence) ? 'Поле "volume" (об\'єм) некоректне.' : ''}
 `);
     } else {
         await bot.sendMessage(chatId, reply);
@@ -300,20 +266,19 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
     console.log(user);
 
     const combinedPrompt = `
-Є початковий об'єкт замовлення з деякими некоректними даними (confidence: false):
-"""${user.originalData}"""
+Є початковий об'єкт замовлення з деякими некоректними даними (confidence: false) або (value: null):
+"""${JSON.stringify(user.originalData)}"""
 
 Користувач уточнив наступне:
 """${newText}"""
 
-На основі обох частин онови обʼєкт даних та поверни оновлений об'єкт (дивись правила формування).
 `;
 
-    console.log(combinedPrompt);
+    const prompt = getPrompt(combinedPrompt);
 
     const gptResponse = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: combinedPrompt }]
+        messages: [{ role: 'user', content: prompt }]
     });
 
     const reply = gptResponse.choices[0].message.content;
@@ -321,7 +286,35 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
     user.correctedData = reply;
     userState.set(chatId, user);
 
-    await bot.sendMessage(chatId, `Оновлені дані:\n${reply}`, {
+    // Parse the JSON data for better formatting
+    let parsedData;
+    try {
+        parsedData = JSON.parse(reply);
+    } catch (err) {
+        console.error('❌ Не вдалося розпарсити JSON:', err);
+        await bot.sendMessage(chatId, `Оновлені дані:\n${reply}`, {
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        { text: '✅ Все вірно', callback_data: 'confirm_correct' },
+                        { text: '❌ Скасувати', callback_data: 'cancel_all' }
+                    ]
+                ]
+            }
+        });
+        return;
+    }
+
+    // Create a nicely formatted message
+    const formattedMessage = `🚢 *Оновлені дані замовлення:*
+
+🔹 *Відправлення:* ${parsedData.from.value || 'Не вказано'}
+🔹 *Призначення:* ${parsedData.to.value || 'Не вказано'}
+🔹 *Вага:* ${parsedData.weight.value || 'Не вказано'} кг
+🔹 *Об'єм:* ${parsedData.volume.value || 'Не вказано'} м³`;
+
+    await bot.sendMessage(chatId, formattedMessage, {
+        parse_mode: 'Markdown',
         reply_markup: {
             inline_keyboard: [
                 [
