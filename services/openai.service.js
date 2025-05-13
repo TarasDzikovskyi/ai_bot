@@ -2,17 +2,17 @@ const { OpenAI } = require('openai');
 const fs = require('fs');
 const { downloadFile, isLikelyOrder } = require('../utils/utils');
 const {ports, cities} = require('../constants')
+const {connectTo1C} = require('./data1C.service');
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
 
 /**
  * Generates a prompt for the OpenAI API based on the input text
  * @param {string} text - The input text
  * @returns {string} - The generated prompt
  */
-
-
 function getPrompt(text) {
     const portList = ports.map(port => `"${port.value}"`).join(', ');
     const cityList = cities.map(city => `"${city.value}"`).join(', ');
@@ -137,11 +137,13 @@ async function handleAudio(bot, msg, chatId, userState) {
                 sourceType: 'audio'
             });
 
-            const errorMessage = `Не вдалося отримати всі дані з аудіо. Змінити?
-${(!parsed.from.value || !parsed.from.confidence) ? 'Поле "from" (порт відправлення) некоректне.' : ''}
-${(!parsed.to.value || !parsed.to.confidence) ? 'Поле "to" (місто призначення) некоректне.' : ''}
-${(!parsed.weight.value || !parsed.weight.confidence) ? 'Поле "weight" (вага) некоректне.' : ''}
-${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "volume" (об\'єм) некоректне.' : ''}`;
+            const errorMessage = `Не вдалося отримати всі дані з аудіо. 
+${(!parsed.from.value || !parsed.from.confidence) ? 'Поле "порт відправлення" некоректне.' : ''}
+${(!parsed.to.value || !parsed.to.confidence) ? 'Поле "місто призначення" некоректне.' : ''}
+${(!parsed.weight.value || !parsed.weight.confidence) ? 'Поле "вага" некоректне.' : ''}
+${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" некоректне.' : ''}
+
+Змінити?`;
 
             await bot.sendMessage(chatId, errorMessage, {
                 reply_markup: {
@@ -152,10 +154,9 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "volume" (об
             });
         } else {
             // Відправляємо результат користувачеві
-            await bot.editMessageText(reply, {
-                chat_id: chatId,
-                message_id: processingMsg.message_id
-            });
+            const data = formatShippingInfo(reply);
+            await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
+            await data1CHandler(reply, chatId, bot);
         }
     } catch (error) {
         console.error('❌ Error in audio processing:', error);
@@ -165,6 +166,7 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "volume" (об
         });
     }
 }
+
 
 /**
  * Handles text messages by extracting information
@@ -187,19 +189,20 @@ async function handleText(bot, text, chatId) {
         await bot.sendMessage(chatId, reply);
         const obj = JSON.parse(reply);
         await bot.sendMessage(chatId, `Прорахунок неможливий.
-${(!obj.from.value || !obj.from.confidence) ? 'Поле "from" (порт відправлення) некоректне.' : ''}
-${(!obj.to.value || !obj.to.confidence) ? 'Поле "to" (місто призначення) некоректне.' : ''}
-${(!obj.weight.value || !obj.weight.confidence) ? 'Поле "weight" (вага) некоректне.' : ''}
-${(!obj.volume.value || !obj.volume.confidence) ? 'Поле "volume" (об\'єм) некоректне.' : ''}
+${(!obj.from.value || !obj.from.confidence) ? 'Поле "порт відправлення" некоректне.' : ''}
+${(!obj.to.value || !obj.to.confidence) ? 'Поле "місто призначення" некоректне.' : ''}
+${(!obj.weight.value || !obj.weight.confidence) ? 'Поле "вага" некоректне.' : ''}
+${(!obj.volume.value || !obj.volume.confidence) ? 'Поле "об`єм" некоректне.' : ''}
 `);
     } else {
-        await bot.sendMessage(chatId, reply);
-        await bot.sendMessage(chatId, 'Дані відправлені в 1С');
-
+        const data = formatShippingInfo(reply);
+        await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
+        await data1CHandler(reply, chatId, bot);
     }
 
 }
-
+// доставка до складу - cfs
+// доставка до дверей - rd
 /**
  * Handles photo messages by analyzing them
  * @param {Object} bot - The Telegram bot instance
@@ -306,12 +309,12 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
     }
 
     // Create a nicely formatted message
-    const formattedMessage = `🚢 *Оновлені дані замовлення:*
+    const formattedMessage = `📦 *Оновлені дані замовлення:*
 
-🔹 *Відправлення:* ${parsedData.from.value || 'Не вказано'}
-🔹 *Призначення:* ${parsedData.to.value || 'Не вказано'}
-🔹 *Вага:* ${parsedData.weight.value || 'Не вказано'} кг
-🔹 *Об'єм:* ${parsedData.volume.value || 'Не вказано'} м³`;
+🚢 *Відправлення:* ${parsedData.from.value || 'Не вказано'}
+📍 *Призначення:* ${parsedData.to.value || 'Не вказано'}
+⚖️ *Вага:* ${parsedData.weight.value || 'Не вказано'} кг
+📐 *Об'єм:* ${parsedData.volume.value || 'Не вказано'} м³`;
 
     await bot.sendMessage(chatId, formattedMessage, {
         parse_mode: 'Markdown',
@@ -324,6 +327,58 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
             ]
         }
     });
+}
+
+
+function formatShippingInfo(data) {
+    console.log(data)
+    const {
+        from,
+        to,
+        weight,
+        volume
+    } = JSON.parse(data);
+
+    return `📦 *Деталі вантажу:*
+
+🚢 *Відправлення:* ${from.value}
+📍 *Призначення:* ${to.value}
+⚖️ *Вага:* ${weight.value} кг
+📐 *Обʼєм:* ${volume.value} м³
+
+⏳ Розраховую вартість...`;
+}
+
+
+function formatShippingResult(data) {
+    console.log(data)
+    const {
+        from,
+        to,
+        weight,
+        volume
+    } = JSON.parse(data);
+
+    return `📦 *Деталі вантажу:*
+
+🚢 *Відправлення:* ${from.value}
+📍 *Призначення:* ${to.value}
+⚖️ *Вага:* ${weight.value} кг
+📐 *Обʼєм:* ${volume.value} м³
+
+⏳ Розраховую вартість...`;
+}
+
+
+async function data1CHandler(reply, chatId, bot){
+    const resultPrice = await connectTo1C(JSON.parse(reply));
+    console.log(resultPrice)
+
+    if(resultPrice.status === 'NOT OK'){
+        await bot.sendMessage(chatId, 'Проблема з прорахунком. Спробуйте пізніше!', );
+    } else {
+
+    }
 }
 
 module.exports = {
