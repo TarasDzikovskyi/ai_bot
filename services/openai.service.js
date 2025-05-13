@@ -8,11 +8,7 @@ const {connectTo1C} = require('./data1C.service');
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 
-/**
- * Generates a prompt for the OpenAI API based on the input text
- * @param {string} text - The input text
- * @returns {string} - The generated prompt
- */
+
 function getPrompt(text) {
     const portList = ports.map(port => `"${port.value}"`).join(', ');
     const cityList = cities.map(city => `"${city.value}"`).join(', ');
@@ -70,14 +66,6 @@ function getPrompt(text) {
 }
 
 
-/**
- * Handles audio messages by transcribing them and extracting information
- * @param {Object} bot - The Telegram bot instance
- * @param {Object} msg - The message object
- * @param {number} chatId - The chat ID
- * @param {Object} userState - The user state map
- * @returns {Promise<void>}
- */
 async function handleAudio(bot, msg, chatId, userState) {
     const fileId = msg.voice?.file_id || msg.audio?.file_id;
 
@@ -129,7 +117,8 @@ async function handleAudio(bot, msg, chatId, userState) {
             return;
         }
 
-        if (!parsed.from.confidence || !parsed.to.confidence || !parsed.weight.confidence || !parsed.volume.confidence) {
+        if (!parsed.from.confidence || !parsed.to.confidence || !parsed.weight.confidence || !parsed.volume.confidence
+        || !parsed.from.value || !parsed.to.value || !parsed.weight.value || !parsed.volume.value) {
             userState.set(chatId, {
                 originalText: text,
                 originalData: parsed,
@@ -155,8 +144,8 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
         } else {
             // Відправляємо результат користувачеві
             const data = formatShippingInfo(reply);
-            await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
-            await data1CHandler(reply, chatId, bot);
+            const message = await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
+            await data1CHandler(reply, chatId, bot, message);
         }
     } catch (error) {
         console.error('❌ Error in audio processing:', error);
@@ -168,13 +157,6 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
 }
 
 
-/**
- * Handles text messages by extracting information
- * @param {Object} bot - The Telegram bot instance
- * @param {string} text - The text message
- * @param {number} chatId - The chat ID
- * @returns {Promise<void>}
- */
 async function handleText(bot, text, chatId) {
     const prompt = getPrompt(text);
 
@@ -184,6 +166,7 @@ async function handleText(bot, text, chatId) {
     });
 
     const reply = gptResponse.choices[0].message.content;
+
 
     if(reply.includes('null') || reply.includes('false')){
         await bot.sendMessage(chatId, reply);
@@ -196,20 +179,13 @@ ${(!obj.volume.value || !obj.volume.confidence) ? 'Поле "об`єм" неко
 `);
     } else {
         const data = formatShippingInfo(reply);
-        await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
-        await data1CHandler(reply, chatId, bot);
+        const processingMsg = await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
+        await data1CHandler(reply, chatId, bot, processingMsg);
     }
 
 }
-// доставка до складу - cfs
-// доставка до дверей - rd
-/**
- * Handles photo messages by analyzing them
- * @param {Object} bot - The Telegram bot instance
- * @param {Object} msg - The message object
- * @param {number} chatId - The chat ID
- * @returns {Promise<void>}
- */
+
+
 async function handlePhoto(bot, msg, chatId) {
     const fileId = msg.photo[msg.photo.length - 1].file_id; // Найбільше зображення
     const file = await bot.getFile(fileId);
@@ -237,15 +213,7 @@ async function handlePhoto(bot, msg, chatId) {
     });
 }
 
-/**
- * Handles correction messages
- * @param {Object} bot - The Telegram bot instance
- * @param {Object} msg - The message object
- * @param {number} chatId - The chat ID
- * @param {Object} user - The user object
- * @param {Object} userState - The user state map
- * @returns {Promise<void>}
- */
+
 async function handleCorrection(bot, msg, chatId, user, userState) {
     let newText = '';
 
@@ -339,8 +307,7 @@ function formatShippingInfo(data) {
         volume
     } = JSON.parse(data);
 
-    return `📦 *Деталі вантажу:*
-
+    return `*Деталі вантажу:*
 🚢 *Відправлення:* ${from.value}
 📍 *Призначення:* ${to.value}
 ⚖️ *Вага:* ${weight.value} кг
@@ -351,32 +318,46 @@ function formatShippingInfo(data) {
 
 
 function formatShippingResult(data) {
-    console.log(data)
-    const {
-        from,
-        to,
-        weight,
-        volume
-    } = JSON.parse(data);
+    // console.log(data)
 
-    return `📦 *Деталі вантажу:*
+    return `*Деталі вантажу:*
+🚢 *Відправлення:* ${data.Origin}
+📍 *Призначення:* ${data.Destination}
+⚖️ *Вага:* ${data.Weight} кг
+📐 *Обʼєм:* ${data.Volume} м³
 
-🚢 *Відправлення:* ${from.value}
-📍 *Призначення:* ${to.value}
-⚖️ *Вага:* ${weight.value} кг
-📐 *Обʼєм:* ${volume.value} м³
 
-⏳ Розраховую вартість...`;
+*Розрахунок:*
+🚚 *Доставка до складу:* ${data.Rate.TotalRateCFS} $
+🚪 *Доставка до дверей:* ${data.Rate.TotalRatePD} $
+`;
 }
 
 
-async function data1CHandler(reply, chatId, bot){
+async function data1CHandler(reply, chatId, bot, processingMsg){
     const resultPrice = await connectTo1C(JSON.parse(reply));
+    console.log('===========================')
     console.log(resultPrice)
+    console.log('===========================')
+
+
+    if(resultPrice.status === 'ok' && resultPrice.successfully){
+        const text = formatShippingResult(resultPrice);
+
+        if(processingMsg){
+            await bot.editMessageText(text, {
+                chat_id: chatId,
+                message_id: processingMsg.message_id,
+                parse_mode: 'Markdown'
+            })
+        }else await bot.sendMessage(chatId, text, {parse_mode: 'Markdown'})
+    }
 
     if(resultPrice.status === 'NOT OK'){
         await bot.sendMessage(chatId, 'Проблема з прорахунком. Спробуйте пізніше!', );
     } else {
+
+
 
     }
 }
@@ -386,5 +367,8 @@ module.exports = {
     handleAudio,
     handleText,
     handlePhoto,
-    handleCorrection
+    handleCorrection,
+    formatShippingInfo,
+    formatShippingResult,
+    data1CHandler
 };

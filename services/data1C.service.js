@@ -17,17 +17,17 @@ const connectTo1C = async (aiData) => {
             rejectUnauthorized: false
         });
 
-        const response = await axios.post(data1C_host, data,
+        const response = await axios.post('https://app.euro-forwarding.com/v8line/hs/ExchangeServices', data,
             {
-                httpsAgent,
+                // httpsAgent,
                 headers: {
-                    Authorization: `Basic ${Buffer.from(data1C_auth).toString('base64')}`,
+                    Authorization: `Basic ${Buffer.from('ExchangeServices:c8sMEeqLvHhWEZ').toString('base64')}`,
                     'Content-Type': 'application/json'
                 }
             })
 
 
-        console.log({status: response.status, data: response.data})
+        // console.log({status: response.status, data: response.data})
         return await response.data;
 
     } catch (e) {

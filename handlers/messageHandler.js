@@ -86,15 +86,16 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
                     state.weight = parseFloat(msg.text);
                     state.step = 'awaitingConfirmation';
 
-                    const destinationLabel = state.destinationType === 'port' ? 'Порт призначення' : 'Місто доставки';
-                    const summary = `🔍 Ви ввели:\n` +
-                        `Порт відправлення: ${state.port}\n` +
-                        `${destinationLabel}: ${state.city}\n` +
-                        `Обʼєм: ${state.volume} м³\n` +
-                        `Вага: ${state.weight} кг\n\n` +
-                        `Підтвердити замовлення?`;
+                    const summary = `*Деталі вантажу:*
+🚢 *Відправлення:* ${state.port}
+📍 *Призначення:* ${state.city}
+⚖️ *Вага:* ${state.weight} кг
+📐 *Обʼєм:* ${state.volume} м³
+
+Підтвердити замовлення?`;
 
                     return bot.sendMessage(chatId, summary, {
+                        parse_mode: 'Markdown',
                         reply_markup: {
                             inline_keyboard: [
                                 [

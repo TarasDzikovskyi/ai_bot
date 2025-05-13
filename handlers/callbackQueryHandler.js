@@ -1,4 +1,5 @@
 const { showItemsPage } = require('../utils/pagination');
+const {formatShippingInfo, data1CHandler} = require("../services/openai.service");
 
 /**
  * Sets up the callback query handler for the bot
@@ -55,10 +56,18 @@ function setupCallbackQueryHandler(bot, userState, dialogStates) {
 
         else if (query.data === 'confirm_correct') {
             // Тут можна надіслати дані в 1С — поки заглушка
+            console.log('+++++++++++++++++++++++++++')
+            console.log(user)
+            console.log('+++++++++++++++++++++++++++')
+
             console.log('➡️ Надсилаємо в 1С:', user?.correctedData || user?.originalData);
 
-            await bot.sendMessage(chatId, '✅ Дані надіслано до 1С! Дякую.');
-            userState.delete(chatId); // Очистити стан
+            // const reply = JSON.stringify(user?.correctedData || user?.originalData);
+
+            // const data = formatShippingInfo(reply);
+            // const processingMsg = await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
+            // await data1CHandler(reply, chatId, bot, processingMsg);
+            // userState.delete(chatId); // Очистити стан
         }
 
         else if (query.data === 'cancel_all') {
@@ -68,8 +77,28 @@ function setupCallbackQueryHandler(bot, userState, dialogStates) {
 
         else if (query.data === 'confirm') {
             if (state?.step === 'awaitingConfirmation') {
-                // Тут буде запит до 1С або інша логіка
-                await bot.sendMessage(chatId, '🚀 Дані відправлено на прорахунок до 1С.\nОчікуйте відповідь менеджера.');
+                const data = {
+                    "from": {
+                        "value": state.port,
+                        "confidence": true
+                    },
+                    "to": {
+                        "value": state.city,
+                        "confidence": true
+                    },
+                    "weight": {
+                        "value": state.weight,
+                        "confidence": true
+                    },
+                    "volume": {
+                        "value": state.volume,
+                        "confidence": true
+                    }
+                }
+
+                const reply = JSON.stringify(data);
+                await data1CHandler(reply, chatId, bot);
+
                 dialogStates.delete(chatId); // Очистити стан
             }
         }
