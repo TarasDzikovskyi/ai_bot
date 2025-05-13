@@ -1,17 +1,15 @@
 const { showItemsPage } = require('../utils/pagination');
 const {formatShippingInfo, data1CHandler} = require("../services/openai.service");
 
-/**
- * Sets up the callback query handler for the bot
- * @param {Object} bot - The Telegram bot instance
- * @param {Map} userState - The user state map
- * @param {Map} dialogStates - The dialog states map
- */
+
 function setupCallbackQueryHandler(bot, userState, dialogStates) {
     bot.on('callback_query', async (query) => {
         const chatId = query.message.chat.id;
+        console.log(chatId)
         const user = userState.get(chatId);
         const state = dialogStates.get(chatId);
+
+        console.log(userState)
 
         if (query.data.startsWith('port:')) {
             const port = query.data.split(':')[1];
@@ -24,7 +22,6 @@ function setupCallbackQueryHandler(bot, userState, dialogStates) {
             }
         }
 
-        // Add handler for city selection
         else if (query.data.startsWith('city:')) {
             const city = query.data.split(':')[1];
             if (state && state.step === 'choosingDestination') {
@@ -55,19 +52,29 @@ function setupCallbackQueryHandler(bot, userState, dialogStates) {
         }
 
         else if (query.data === 'confirm_correct') {
-            // Тут можна надіслати дані в 1С — поки заглушка
             console.log('+++++++++++++++++++++++++++')
             console.log(user)
             console.log('+++++++++++++++++++++++++++')
 
-            console.log('➡️ Надсилаємо в 1С:', user?.correctedData || user?.originalData);
+            if (!user) {
+                await bot.sendMessage(chatId, 'Помилка: дані користувача не знайдено. Спробуйте ще раз.');
+                return;
+            }
 
-            // const reply = JSON.stringify(user?.correctedData || user?.originalData);
+            const userData = user?.correctedData || user?.originalData;
+            console.log('➡️ Надсилаємо в 1С:', userData);
 
-            // const data = formatShippingInfo(reply);
-            // const processingMsg = await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
-            // await data1CHandler(reply, chatId, bot, processingMsg);
-            // userState.delete(chatId); // Очистити стан
+            if (!userData) {
+                await bot.sendMessage(chatId, 'Помилка: дані для відправки не знайдено. Спробуйте ще раз.');
+                return;
+            }
+
+            const reply = typeof userData === 'string' ? userData : JSON.stringify(userData);
+
+            const data = formatShippingInfo(reply);
+            const processingMsg = await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
+            await data1CHandler(reply, chatId, bot, processingMsg);
+            userState.delete(chatId); // Очистити стан
         }
 
         else if (query.data === 'cancel_all') {

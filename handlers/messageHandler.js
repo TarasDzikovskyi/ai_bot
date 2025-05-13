@@ -19,7 +19,7 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
         if (user?.isEditing) {
             if (msg.text || msg.voice || msg.audio) {
                 await handleCorrection(bot, msg, chatId, user, userState);
-                userState.delete(chatId);
+                // Don't delete userState here as it's needed for the confirmation step
                 return;
             } else {
                 await bot.sendMessage(chatId, 'Надішли текст або аудіо з уточненням.');
