@@ -18,6 +18,21 @@ function setupCommandHandlers(bot) {
             }
         });
     });
+
+
+    bot.onText(/\/search_city/, (msg) => {
+        const chatId = msg.chat.id;
+        bot.sendMessage(chatId, 'Натисни кнопку для пошуку міста:', {
+            reply_markup: {
+                inline_keyboard: [[
+                    {
+                        text: '🔍 Пошук міста',
+                        switch_inline_query_current_chat: ''
+                    }
+                ]]
+            }
+        });
+    });
 }
 
 module.exports = {

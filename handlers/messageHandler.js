@@ -1,15 +1,70 @@
 const { showItemsPage } = require('../utils/pagination');
 const { isLikelyOrder } = require('../utils/utils');
 const { handleAudio, handleText, handleCorrection } = require('../services/openai.service');
+const {ports} = require('../constants')
 
-/**
- * Sets up the message handler for the bot
- * @param {Object} bot - The Telegram bot instance
- * @param {Map} userState - The user state map
- * @param {Map} dialogStates - The dialog states map
- * @param {Map} sessionMap - The session map
- */
+const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
 function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
+    bot.on('inline_query', (query) => {
+        const rawQuery = query.query.trim();
+        const searchText = rawQuery.toLowerCase();
+
+        let results = [];
+
+        if (searchText.startsWith('port ')) {
+            const keyword = normalize(searchText.replace('port ', '').trim());
+
+            results = ports
+                .filter(item =>
+                    normalize(item.text).includes(keyword) ||
+                    item.value.toLowerCase().includes(keyword)
+                )
+                .slice(0, 20)
+                .map((item, index) => ({
+                    type: 'article',
+                    id: `port-${index}`,
+                    title: `Порт: ${item.text} (${item.value})`,
+                    input_message_content: {
+                        message_text: `Обрано порт: ${item.text} (${item.value})`
+                    },
+                    description: `Код: ${item.code}`
+                }));
+
+        } else if (searchText.startsWith('city ')) {
+            const keyword = searchText.replace('city ', '').trim();
+
+            results = cities
+                .filter(city =>
+                    city.name.toLowerCase().includes(keyword) ||
+                    city.code.toLowerCase().includes(keyword)
+                )
+                .slice(0, 20)
+                .map((item, index) => ({
+                    type: 'article',
+                    id: `city-${index}`,
+                    title: `Місто: ${item.name}`,
+                    input_message_content: {
+                        message_text: `Обрано місто: ${item.name}`
+                    },
+                    // description: `Код міста: ${item.code}`
+                }));
+        } else {
+            // Нічого не знайдено або не вказано порт/місто
+            results = [{
+                type: 'article',
+                id: 'empty',
+                title: 'Вкажи "port" або "city"',
+                input_message_content: {
+                    message_text: 'Напиши `port Одеса` або `city Київ`'
+                },
+                description: 'Щоб знайти порт або місто — введи "port ..." або "city ..."'
+            }];
+        }
+
+        bot.answerInlineQuery(query.id, results);
+    });
+
     bot.on('message', async (msg) => {
         const chatId = msg.chat.id;
         const state = dialogStates.get(chatId);

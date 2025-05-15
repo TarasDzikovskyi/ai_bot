@@ -96,7 +96,8 @@ async function handleAudio(bot, msg, chatId, userState) {
         const prompt = getPrompt(text);
 
         const gptResponse = await openai.chat.completions.create({
-            model: 'gpt-3.5-turbo',
+            // model: 'gpt-3.5-turbo',
+            model: 'gpt-4-turbo',
             messages: [{ role: 'user', content: prompt }]
         });
 
@@ -161,7 +162,8 @@ async function handleText(bot, text, chatId) {
     const prompt = getPrompt(text);
 
     const gptResponse = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+        // model: 'gpt-3.5-turbo',
+        model: 'gpt-4-turbo',
         messages: [{ role: 'user', content: prompt }]
     });
 
