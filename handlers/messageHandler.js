@@ -1,7 +1,7 @@
 const { showItemsPage } = require('../utils/pagination');
 const { isLikelyOrder } = require('../utils/utils');
 const { handleAudio, handleText, handleCorrection } = require('../services/openai.service');
-const {ports} = require('../constants')
+const {ports, cities} = require('../constants')
 
 const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
@@ -54,7 +54,7 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
             results = [{
                 type: 'article',
                 id: 'empty',
-                title: 'Вкажи "port" або "city"',
+                title: 'Вкажи "port" або "city" (якщо не вказано)',
                 input_message_content: {
                     message_text: 'Напиши `port Одеса` або `city Київ`'
                 },

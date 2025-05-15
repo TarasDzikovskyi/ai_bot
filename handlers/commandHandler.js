@@ -20,14 +20,18 @@ function setupCommandHandlers(bot) {
     });
 
 
-    bot.onText(/\/search_city/, (msg) => {
+    bot.onText(/\/search/, (msg) => {
         const chatId = msg.chat.id;
-        bot.sendMessage(chatId, 'Натисни кнопку для пошуку міста:', {
+        bot.sendMessage(chatId, 'Натисни кнопку для пошуку:', {
             reply_markup: {
                 inline_keyboard: [[
                     {
+                        text: '🔍 Пошук порту',
+                        switch_inline_query_current_chat: 'port '
+                    },
+                    {
                         text: '🔍 Пошук міста',
-                        switch_inline_query_current_chat: ''
+                        switch_inline_query_current_chat: 'city '
                     }
                 ]]
             }
