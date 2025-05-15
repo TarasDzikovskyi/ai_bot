@@ -101,15 +101,8 @@ async function handleAudio(bot, msg, chatId, userState) {
             messages: [{ role: 'user', content: prompt }]
         });
 
-        console.log(gptResponse);
-
-        console.log(gptResponse.choices[0].message)
-
         const reply = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
 
-
-
-        // const reply = gptResponse.choices[0].message.content;
         console.log(reply);
 
         let parsed;
@@ -239,6 +232,7 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
             language: "uk"
         });
 
+        console.log(transcription.text)
         newText = transcription.text;
     }
 
@@ -256,11 +250,13 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
     const prompt = getPrompt(combinedPrompt);
 
     const gptResponse = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+        // model: 'gpt-3.5-turbo',
+        model: 'gpt-4-turbo',
         messages: [{ role: 'user', content: prompt }]
     });
 
-    const reply = gptResponse.choices[0].message.content;
+    const reply = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
+    console.log(reply);
 
     user.correctedData = reply;
     userState.set(chatId, user);
