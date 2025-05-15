@@ -156,17 +156,14 @@ async function handleAudio(bot, msg, chatId, userState) {
             throw new Error('Не вдалося отримати текст з аудіо');
         }
 
-        console.log(transcription);
-
         const text = transcription.text;
+        console.log(text)
 
         // Форматування тексту
         const cleanedText = normalizeTextWithFuzzyMatch(text);
 
         // Використовуємо GPT для витягування інформації з тексту
         const prompt = getPrompt(cleanedText);
-
-        console.log(prompt);
 
         const gptResponse = await openai.chat.completions.create({
             model: text_model,
