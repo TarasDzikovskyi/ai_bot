@@ -1,13 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+const fuzz = require('fuzzball');
+const { ports, cities } = require('../constants');
 
-/**
- * Downloads a file from a URL and saves it to the specified filename
- * @param {string} url - The URL of the file to download
- * @param {string} filename - The name to save the file as
- * @returns {Promise<string>} - The path to the downloaded file
- */
+
 async function downloadFile(url, filename) {
     const directoryPath = path.join(__dirname, '..', 'audio');
 
@@ -26,12 +23,7 @@ async function downloadFile(url, filename) {
     });
 }
 
-/**
- * Splits an array into chunks of the specified size
- * @param {Array} array - The array to chunk
- * @param {number} size - The size of each chunk
- * @returns {Array} - The chunked array
- */
+
 function chunkArray(array, size) {
     const chunked = [];
     for (let i = 0; i < array.length; i += size) {
@@ -40,11 +32,7 @@ function chunkArray(array, size) {
     return chunked;
 }
 
-/**
- * Checks if a text is likely to be an order based on keywords
- * @param {string} text - The text to check
- * @returns {boolean} - Whether the text is likely to be an order
- */
+
 function isLikelyOrder(text) {
     const keywords = [
         'доставка', 'порт', 'море', 'контейнер',
@@ -57,27 +45,87 @@ function isLikelyOrder(text) {
     return keywords.some(word => lowerText.includes(word));
 }
 
-/**
- * Creates a response text template
- * @returns {string} - The response text template
- */
-function createResponseText() {
-    const text = `🔍 Ваші дані:
-    Порт завантаження: 
-    Місце доставки:
-    Вага вантажу:
-    Обʼєм вантажу:
 
-    На основі ваших даних було прораховано наступне: 
-    Ціна до місця доставки:
-    Ціна до дверей: `
+function normalizeTextWithFuzzyMatch(text) {
+    let normalizedText = text;
 
-    return text
+    // const portNames = ports.map(p => p.text);
+    // const cityNames = cities.map(c => c.text);
+
+    const portNames = ports.flatMap(p => [p.text, p.value]);
+    const cityNames = cities.flatMap(p => [p.text, p.value]);
+
+    const words = text.split(/[\s,.;()!?]+/); // розбити текст на слова
+
+    for (const word of words) {
+        // Пошук серед портів
+        const [bestPortMatch, portScore] = fuzz.extract(word, portNames, { scorer: fuzz.ratio, returnObjects: false })[0];
+        if (portScore >= 70) {
+            const reg = new RegExp(word, 'gi');
+            normalizedText = normalizedText.replace(reg, bestPortMatch);
+        }
+
+        // Пошук серед міст
+        const [bestCityMatch, cityScore] = fuzz.extract(word, cityNames, { scorer: fuzz.ratio, returnObjects: false })[0];
+        if (cityScore >= 70) {
+            const reg = new RegExp(word, 'gi');
+            normalizedText = normalizedText.replace(reg, bestCityMatch);
+        }
+    }
+
+    return normalizedText;
 }
+
+
+function normalizeFromTo(input) {
+    const result = {
+        ...input, // копіюємо всі поля
+        from: {
+            ...input.from,
+            value: null,
+            confidence: false
+        },
+        to: {
+            ...input.to,
+            value: null,
+            confidence: false
+        }
+    };
+
+    // normalize from
+    if (input.from?.value) {
+        const match = ports.find(p =>
+            p.text.toLowerCase() === input.from.value.toLowerCase() ||
+            p.value.toLowerCase() === input.from.value.toLowerCase()
+        );
+
+        if (match) {
+            result.from.value = match.value;
+            result.from.confidence = true;
+        }
+    }
+
+    // normalize to
+    if (input.to?.value) {
+        const match = cities.find(c =>
+            c.text.toLowerCase() === input.to.value.toLowerCase() ||
+            c.value.toLowerCase() === input.to.value.toLowerCase()
+        );
+
+        if (match) {
+            result.to.value = match.value;
+            result.to.confidence = true;
+        }
+    }
+
+    return result;
+}
+
 
 module.exports = {
     downloadFile,
     chunkArray,
     isLikelyOrder,
-    createResponseText
+    normalizeTextWithFuzzyMatch,
+    normalizeFromTo
 };

@@ -1,6 +1,6 @@
 const { OpenAI } = require('openai');
 const fs = require('fs');
-const { downloadFile, isLikelyOrder } = require('../utils/utils');
+const { downloadFile, isLikelyOrder, normalizeTextWithFuzzyMatch, normalizeFromTo} = require('../utils/utils');
 const {ports, cities} = require('../constants')
 const {connectTo1C} = require('./data1C.service');
 
@@ -63,6 +63,10 @@ function getPromptOld(text) {
 }
 
 function getPrompt(text) {
+    console.log('=================================TEXT PROMPT==================================');
+    console.log(text);
+    console.log('=================================TEXT PROMPT==================================');
+
     const portList = ports.map(port => `"${port.text}"`).join(', ');
     const cityList = cities.map(city => `"${city.text}"`).join(', ');
 
@@ -130,7 +134,6 @@ function getPrompt(text) {
 }
 
 
-
 async function handleAudio(bot, msg, chatId, userState) {
     const fileId = msg.voice?.file_id || msg.audio?.file_id;
 
@@ -157,17 +160,22 @@ async function handleAudio(bot, msg, chatId, userState) {
 
         const text = transcription.text;
 
+        // Форматування тексту
+        const cleanedText = normalizeTextWithFuzzyMatch(text);
+
         // Використовуємо GPT для витягування інформації з тексту
-        const prompt = getPrompt(text);
+        const prompt = getPrompt(cleanedText);
 
         const gptResponse = await openai.chat.completions.create({
             model: text_model,
             messages: [{ role: 'user', content: prompt }]
         });
 
-        const reply = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
+        const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
 
-        console.log(reply);
+        const cleanedParsed = normalizeFromTo(JSON.parse(replyGPT));
+        const reply = JSON.stringify(cleanedParsed);
+
 
         let parsed;
         try {
@@ -180,6 +188,7 @@ async function handleAudio(bot, msg, chatId, userState) {
             });
             return;
         }
+
 
         if (!parsed.from.confidence || !parsed.to.confidence || !parsed.weight.confidence || !parsed.volume.confidence
         || !parsed.from.value || !parsed.to.value || !parsed.weight.value || !parsed.volume.value) {
@@ -229,7 +238,12 @@ async function handleText(bot, text, chatId) {
         messages: [{ role: 'user', content: prompt }]
     });
 
-    const reply = gptResponse.choices[0].message.content;
+    const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
+
+    const cleanedReply = normalizeTextWithFuzzyMatch(replyGPT);
+
+    const cleanedParsed = normalizeFromTo(JSON.parse(cleanedReply));
+    const reply = JSON.stringify(cleanedParsed);
 
 
     if(reply.includes('null') || reply.includes('false')){
@@ -299,14 +313,16 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
         newText = transcription.text;
     }
 
+    const cleanedText = normalizeTextWithFuzzyMatch(newText);
     console.log(user);
+    console.log(cleanedText);
 
     const combinedPrompt = `
 Є початковий об'єкт замовлення з деякими некоректними даними (confidence: false) або (value: null):
 """${JSON.stringify(user.originalData)}"""
 
 Користувач уточнив наступне:
-"""${newText}"""
+"""${cleanedText}"""
 
 `;
 
@@ -317,8 +333,10 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
         messages: [{ role: 'user', content: prompt }]
     });
 
-    const reply = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
-    console.log(reply);
+    const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
+
+    const cleanedParsed = normalizeFromTo(JSON.parse(replyGPT));
+    const reply = JSON.stringify(cleanedParsed);
 
     user.correctedData = reply;
     userState.set(chatId, user);
