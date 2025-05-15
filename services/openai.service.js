@@ -103,10 +103,11 @@ async function handleAudio(bot, msg, chatId, userState) {
 
         console.log(gptResponse);
 
-        const reply = gptResponse.replace(/```json|```/g, '').trim();
-
-
         console.log(gptResponse.choices[0].message)
+
+        const reply = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
+
+
 
         // const reply = gptResponse.choices[0].message.content;
         console.log(reply);
