@@ -1,15 +1,7 @@
 const { chunkArray } = require('./utils');
 const { ports, cities } = require('../constants');
 
-/**
- * Shows a paginated list of items (ports or cities)
- * @param {Object} bot - The Telegram bot instance
- * @param {number} chatId - The chat ID to send the message to
- * @param {number} page - The page number to show
- * @param {string} type - The type of items to show ('departure', 'destination', or 'list')
- * @param {string} itemType - The type of items ('port' or 'city')
- * @returns {Promise} - The result of sending the message
- */
+
 function showItemsPage(bot, chatId, page, type, itemType = 'port') {
     const items = itemType === 'port' ? ports : cities;
     const ITEMS_PER_PAGE = 22; // Show items per page (can be adjusted)

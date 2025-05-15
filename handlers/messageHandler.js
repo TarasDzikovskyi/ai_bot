@@ -3,52 +3,91 @@ const { isLikelyOrder } = require('../utils/utils');
 const { handleAudio, handleText, handleCorrection } = require('../services/openai.service');
 const {ports, cities} = require('../constants')
 
-const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const normalizePort = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const normalizeCity = (str) => str.normalize("NFC").toLowerCase().replace(/[^\p{L}\d\s]/gu, '').toLowerCase();
 
 function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
     bot.on('inline_query', (query) => {
+        const userId = query.from.id;
+        const userState = dialogStates.get(userId);
+
         const rawQuery = query.query.trim();
         const searchText = rawQuery.toLowerCase();
+
+        let showConfirmButton = false;
+        if (userState && (userState.step === 'awaitingPort' || userState.step === 'choosingDestination')) {
+            showConfirmButton = true;
+        }
 
         let results = [];
 
         if (searchText.startsWith('port ')) {
-            const keyword = normalize(searchText.replace('port ', '').trim());
+            const keyword = normalizePort(searchText.replace('port ', '').trim());
 
             results = ports
                 .filter(item =>
-                    normalize(item.text).includes(keyword) ||
+                    normalizePort(item.text).includes(keyword) ||
                     item.value.toLowerCase().includes(keyword)
                 )
                 .slice(0, 20)
-                .map((item, index) => ({
-                    type: 'article',
-                    id: `port-${index}`,
-                    title: `Порт: ${item.text} (${item.value})`,
-                    input_message_content: {
-                        message_text: `Обрано порт: ${item.text} (${item.value})`
-                    },
-                    description: `Код: ${item.code}`
-                }));
+                .map((item, index) => {
+                    const baseResult = {
+                        type: 'article',
+                        id: `port-${index}`,
+                        title: `Порт: ${item.text} (${item.value})`,
+                        input_message_content: {
+                            message_text: `Обрано порт: ${item.text} (${item.value})`
+                        },
+                        description: `Код: ${item.code}`
+                    };
+
+                    if (showConfirmButton) {
+                        baseResult.reply_markup = {
+                            inline_keyboard: [[
+                                {
+                                    text: 'Підтвердити?',
+                                    callback_data: `port:${item.value}`
+                                }
+                            ]]
+                        };
+                    }
+
+                    return baseResult;
+                });
 
         } else if (searchText.startsWith('city ')) {
-            const keyword = searchText.replace('city ', '').trim();
+            const keyword = normalizeCity(searchText.replace('city ', '').trim());
 
             results = cities
-                .filter(city =>
-                    city.name.toLowerCase().includes(keyword) ||
-                    city.code.toLowerCase().includes(keyword)
+                .filter(item =>
+                    normalizeCity(item.text).includes(keyword) ||
+                    item.value.toLowerCase().includes(keyword)
                 )
                 .slice(0, 20)
-                .map((item, index) => ({
-                    type: 'article',
-                    id: `city-${index}`,
-                    title: `Місто: ${item.name}`,
-                    input_message_content: {
-                        message_text: `Обрано місто: ${item.name}`
-                    },
-                    // description: `Код міста: ${item.code}`
-                }));
+                .map((item, index) => {
+                    const baseResult = {
+                        type: 'article',
+                        id: `city-${index}`,
+                        title: `Місто: ${item.text} (${item.value})`,
+                        input_message_content: {
+                            message_text: `Обрано місто: ${item.text} (${item.value})`
+                        }
+                        // description можна додати, якщо треба
+                    };
+
+                    if (showConfirmButton) {
+                        baseResult.reply_markup = {
+                            inline_keyboard: [[
+                                {
+                                    text: 'Підтвердити?',
+                                    callback_data: `city:${item.value}`
+                                }
+                            ]]
+                        };
+                    }
+
+                    return baseResult;
+                });
         } else {
             // Нічого не знайдено або не вказано порт/місто
             results = [{
@@ -105,7 +144,7 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
 
             if (msg.text === '🔊 Надіслати аудіо') {
                 sessionMap.set(chatId, 'awaiting_gpt_audio');
-                await bot.sendMessage(chatId, 'Надішли голосове повідомлення з інформацією про замовлення.');
+                await bot.sendMessage(chatId, 'Надішліть голосове повідомлення з інформацією про замовлення.');
                 return;
             }
 
@@ -117,7 +156,18 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
 
             if (msg.text === '📦 Прорахувати вантаж') {
                 dialogStates.set(chatId, { step: 'awaitingPort', portPage: 0 });
-                return showItemsPage(bot, chatId, 0, 'departure', 'port');
+                await showItemsPage(bot, chatId, 0, 'departure', 'port');
+
+                return bot.sendMessage(chatId, 'Або натисніть кнопку для пошуку:', {
+                    reply_markup: {
+                        inline_keyboard: [[
+                            {
+                                text: '🔍 Пошук порту',
+                                switch_inline_query_current_chat: 'port '
+                            }
+                        ]]
+                    }
+                });
             }
 
             if (state) {
@@ -169,11 +219,33 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
             }
 
             if (msg.text === '🏙️ Список міст') {
-                return showItemsPage(bot, chatId, 0, 'list', 'city');
+                 await showItemsPage(bot, chatId, 0, 'list', 'city');
+
+                return bot.sendMessage(chatId, 'Або натисни кнопку для пошуку:', {
+                    reply_markup: {
+                        inline_keyboard: [[
+                            {
+                                text: '🔍 Пошук міста',
+                                switch_inline_query_current_chat: 'city '
+                            }
+                        ]]
+                    }
+                });
             }
 
             if (msg.text === '🚢 Список портів') {
-                return showItemsPage(bot, chatId, 0, 'list', 'port');
+                await showItemsPage(bot, chatId, 0, 'list', 'port');
+
+                return bot.sendMessage(chatId, 'Або натисніть кнопку для пошуку:', {
+                    reply_markup: {
+                        inline_keyboard: [[
+                            {
+                                text: '🔍 Пошук порту',
+                                switch_inline_query_current_chat: 'port '
+                            }
+                        ]]
+                    }
+                });
             }
         } catch (error) {
             console.error('❌ Error:', error);

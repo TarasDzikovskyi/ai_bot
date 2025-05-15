@@ -4,7 +4,7 @@ const {formatShippingInfo, data1CHandler} = require("../services/openai.service"
 
 function setupCallbackQueryHandler(bot, userState, dialogStates) {
     bot.on('callback_query', async (query) => {
-        const chatId = query.message.chat.id;
+        const chatId = query?.message?.chat?.id || query?.from?.id;
         console.log(chatId)
         const user = userState.get(chatId);
         const state = dialogStates.get(chatId);
@@ -19,6 +19,16 @@ function setupCallbackQueryHandler(bot, userState, dialogStates) {
                 state.portPage = 0;
                 // Show cities directly without asking for destination type
                 await showItemsPage(bot, chatId, 0, 'destination', 'city');
+                await bot.sendMessage(chatId, 'Або натисніть кнопку для пошуку:', {
+                    reply_markup: {
+                        inline_keyboard: [[
+                            {
+                                text: '🔍 Пошук міста',
+                                switch_inline_query_current_chat: 'city '
+                            }
+                        ]]
+                    }
+                });
             }
         }
 
