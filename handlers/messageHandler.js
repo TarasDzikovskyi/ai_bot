@@ -82,7 +82,7 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
             }
         }
 
-        console.log(msg);
+        // console.log(msg);
 
         try {
             if (sessionState === 'awaiting_gpt_input') {

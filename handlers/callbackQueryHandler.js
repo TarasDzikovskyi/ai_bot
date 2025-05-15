@@ -9,7 +9,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates) {
         const user = userState.get(chatId);
         const state = dialogStates.get(chatId);
 
-        console.log(userState)
+        // console.log(userState)
 
         if (query.data.startsWith('port:')) {
             const port = query.data.split(':')[1];

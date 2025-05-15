@@ -166,6 +166,8 @@ async function handleAudio(bot, msg, chatId, userState) {
         // Використовуємо GPT для витягування інформації з тексту
         const prompt = getPrompt(cleanedText);
 
+        console.log(prompt);
+
         const gptResponse = await openai.chat.completions.create({
             model: text_model,
             messages: [{ role: 'user', content: prompt }]
@@ -175,6 +177,7 @@ async function handleAudio(bot, msg, chatId, userState) {
 
         const cleanedParsed = normalizeFromTo(JSON.parse(replyGPT));
         const reply = JSON.stringify(cleanedParsed);
+
 
 
         let parsed;
@@ -190,10 +193,15 @@ async function handleAudio(bot, msg, chatId, userState) {
         }
 
 
+        console.log('===========================PARSED AUDIO===========================')
+        console.log(parsed)
+        console.log('===========================PARSED AUDIO===========================')
+
+
         if (!parsed.from.confidence || !parsed.to.confidence || !parsed.weight.confidence || !parsed.volume.confidence
         || !parsed.from.value || !parsed.to.value || !parsed.weight.value || !parsed.volume.value) {
             userState.set(chatId, {
-                originalText: text,
+                originalText: cleanedText,
                 originalData: parsed,
                 isEditing: true,
                 sourceType: 'audio'
