@@ -53,7 +53,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates) {
         }
 
         else if (query.data === 'edit_yes') {
-            await bot.sendMessage(chatId, 'Будь ласка, надішли нове аудіо або текст із уточненнями.');
+            await bot.sendMessage(chatId, 'Будь ласка, надішліть нове аудіо або текст із уточненнями.');
         }
 
         else if (query.data === 'edit_no') {

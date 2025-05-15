@@ -424,10 +424,21 @@ function formatShippingResult(data) {
 
 
 async function data1CHandler(reply, chatId, bot, processingMsg){
+    const {from, to, volume, weight} = JSON.parse(reply);
+
+    if(!from.value || !to.value || !volume.value || !weight.value){
+        return bot.sendMessage(chatId, 'Проблема з прорахунком. Немає всіх даних!' );
+    }
+
+    if(volume.value > 50 || weight.value > 12000){
+        return bot.sendMessage(chatId, 'Будь ласка зв`яжіться з вашим менеджером для актуального прорахунку' );
+    }
+
+
     const resultPrice = await connectTo1C(JSON.parse(reply));
-    console.log('===========================')
+    console.log('============RESULT FORM 1C===============')
     console.log(resultPrice)
-    console.log('===========================')
+    console.log('============RESULT FORM 1C===============')
 
 
     if(resultPrice.status === 'ok' && resultPrice.successfully){
