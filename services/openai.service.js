@@ -1,6 +1,6 @@
 const { OpenAI } = require('openai');
 const fs = require('fs');
-const { downloadFile, isLikelyOrder, normalizeTextWithFuzzyMatch, normalizeFromTo} = require('../utils/utils');
+const { downloadFile, normalizeTextWithFuzzyMatch, normalizeFromTo, isLikelyOrder} = require('../utils/utils');
 const {ports, cities} = require('../constants')
 const {connectTo1C} = require('./data1C.service');
 
@@ -111,6 +111,10 @@ async function handleAudio(bot, msg, chatId, userState) {
         // Форматування тексту
         const cleanedText = normalizeTextWithFuzzyMatch(text);
 
+        if(!isLikelyOrder(cleanedText)){
+            return bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
+        }
+
         // Використовуємо GPT для витягування інформації з тексту
         const prompt = getPrompt(cleanedText);
 
@@ -185,7 +189,6 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
 
 
 async function handleText(bot, text, chatId) {
-
     const cleanedText = normalizeTextWithFuzzyMatch(text);
 
     const prompt = getPrompt(cleanedText);
@@ -196,15 +199,8 @@ async function handleText(bot, text, chatId) {
     });
 
     console.log(gptResponse)
-    console.log('++++++++++++++++++++++++++++++++++++++++++')
-    console.log(gptResponse.choices[0].message.content)
 
     const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
-    // const replyGPT = gptResponse.choices[0].message.content;
-
-    // const cleanedText = normalizeTextWithFuzzyMatch(text);
-    console.log('==========================================================')
-    console.log(replyGPT)
 
     const cleanedParsed = normalizeFromTo(JSON.parse(replyGPT));
     const reply = JSON.stringify(cleanedParsed);
