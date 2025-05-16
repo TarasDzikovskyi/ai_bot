@@ -243,12 +243,17 @@ async function handleText(bot, text, chatId) {
         messages: [{ role: 'user', content: prompt }]
     });
 
+    console.log(gptResponse)
+    console.log(gptResponse.choices[0].message.content)
+
     const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
 
     const cleanedReply = normalizeTextWithFuzzyMatch(replyGPT);
+    console.log(cleanedReply)
 
     const cleanedParsed = normalizeFromTo(JSON.parse(cleanedReply));
     const reply = JSON.stringify(cleanedParsed);
+    console.log(reply)
 
 
     if(reply.includes('null') || reply.includes('false')){
