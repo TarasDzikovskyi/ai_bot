@@ -185,7 +185,10 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
 
 
 async function handleText(bot, text, chatId) {
-    const prompt = getPrompt(text);
+
+    const cleanedText = normalizeTextWithFuzzyMatch(text);
+
+    const prompt = getPrompt(cleanedText);
 
     const gptResponse = await openai.chat.completions.create({
         model: text_model,
@@ -196,14 +199,14 @@ async function handleText(bot, text, chatId) {
     console.log('++++++++++++++++++++++++++++++++++++++++++')
     console.log(gptResponse.choices[0].message.content)
 
-    // const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
-    const replyGPT = gptResponse.choices[0].message.content;
+    const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
+    // const replyGPT = gptResponse.choices[0].message.content;
 
-    const cleanedReply = normalizeTextWithFuzzyMatch(replyGPT);
+    // const cleanedText = normalizeTextWithFuzzyMatch(text);
     console.log('==========================================================')
-    console.log(cleanedReply)
+    console.log(replyGPT)
 
-    const cleanedParsed = normalizeFromTo(JSON.parse(cleanedReply));
+    const cleanedParsed = normalizeFromTo(JSON.parse(replyGPT));
     const reply = JSON.stringify(cleanedParsed);
     console.log(reply)
 
