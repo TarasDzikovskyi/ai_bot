@@ -1,7 +1,20 @@
-const { showItemsPage } = require('../utils/pagination');
-const { isLikelyOrder } = require('../utils/utils');
-const { handleAudio, handleText, handleCorrection } = require('../services/openai.service');
+const {showItemsPage} = require('../utils/pagination');
+const {isLikelyOrder} = require('../utils/utils');
+const {handleAudio, handleText, handleCorrection} = require('../services/openai.service');
 const {ports, cities} = require('../constants')
+const JSONdb = require('simple-json-db');
+const db = new JSONdb('people.json');
+
+let option = {
+    "parse_mode": "Markdown",
+    "reply_markup": {
+        "one_time_keyboard": true,
+        "keyboard": [[{
+            text: "Номер телефону",
+            request_contact: true
+        }], ["Скасувати"]]
+    }
+};
 
 const normalizePort = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const normalizeCity = (str) => str.normalize("NFC").toLowerCase().replace(/[^\p{L}\d\s]/gu, '').toLowerCase();
@@ -109,89 +122,157 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
         const state = dialogStates.get(chatId);
         const sessionState = sessionMap.get(chatId);
         const user = userState.get(chatId);
+        const contact = msg.contact;
 
-        if (user?.isEditing) {
-            if (msg.text || msg.voice || msg.audio) {
-                await handleCorrection(bot, msg, chatId, user, userState);
-                // Don't delete userState here as it's needed for the confirmation step
-                return;
-            } else {
-                await bot.sendMessage(chatId, 'Надішли текст або аудіо з уточненням.');
-                return;
+        console.log(msg.text)
+
+        const db_user = db.get(chatId);
+        // console.log(db_user)
+
+        if (contact) {
+            if (!contact.phone_number.includes('+')) contact.phone_number = `+${contact.phone_number}`;
+
+            const db_person = db.get(contact.user_id);
+
+            // console.log(db_person)
+
+            if (!db_person) {
+                let person = {};
+                person['id'] = contact.user_id;
+                person['name'] = `${contact.first_name} ${contact.last_name}`;
+                person['phone_number'] = contact.phone_number;
+
+                db.set(person.id, person);
+                await bot.sendMessage(chatId, 'Дякуємо! Очікуйте підтвердження.')
+
+                setTimeout(() => {
+                    return bot.sendMessage(chatId, 'Особу підтверджено. Приємного користування. Натисніть в меню "Старт" для початку роботи.')
+                }, 2000)
             }
         }
 
-        // console.log(msg);
 
         try {
-            if (sessionState === 'awaiting_gpt_input') {
-                sessionMap.delete(chatId);
-
-                if (isLikelyOrder(msg.text)) {
-                    await handleText(bot, msg.text, chatId);
+            if (msg.text === '/start') {
+                if (!db_user) {
+                    return bot.sendMessage(chatId, `Поділіться, будь ласка, контактом для підтвердження особи`, option)
                 } else {
-                    await bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
+                    return bot.sendMessage(chatId, 'Привіт! Оберіть дію:', {
+                        reply_markup: {
+                            keyboard: [
+                                ['🔊 Надіслати аудіо', '📝 Надіслати текст'],
+                                ['📦 Прорахувати вантаж', 'ℹ️ Допомога'],
+                                ['🏙️ Список міст', '🚢 Список портів']
+                            ],
+                            resize_keyboard: true,
+                            one_time_keyboard: false
+                        }
+                    });
                 }
             }
 
-            if (sessionState === 'awaiting_gpt_audio') {
-                sessionMap.delete(chatId);
-                if (msg.voice || msg.audio) {
-                    await handleAudio(bot, msg, chatId, userState);
+            if (msg.text === '/search') {
+                if (!db_user) {
+                    return bot.sendMessage(chatId, `Поділіться, будь ласка, контактом для підтвердження особи`, option)
+                } else {
+                    return bot.sendMessage(chatId, 'Натисни кнопку для пошуку:', {
+                        reply_markup: {
+                            inline_keyboard: [[
+                                {
+                                    text: '🔍 Пошук порту',
+                                    switch_inline_query_current_chat: 'port '
+                                },
+                                {
+                                    text: '🔍 Пошук міста',
+                                    switch_inline_query_current_chat: 'city '
+                                }
+                            ]]
+                        }
+                    });
                 }
-                // else await bot.sendMessage(chatId, 'Це не аудіо!')
             }
 
-            if (msg.text === '🔊 Надіслати аудіо') {
-                sessionMap.set(chatId, 'awaiting_gpt_audio');
-                await bot.sendMessage(chatId, 'Надішліть голосове повідомлення з інформацією про замовлення.');
-                return;
-            }
 
-            if (msg.text === '📝 Надіслати текст') {
-                sessionMap.set(chatId, 'awaiting_gpt_input');
-                await bot.sendMessage(chatId, 'Будь ласка, введіть текст замовлення на прорахунок вантажу.');
-                return;
-            }
-
-            if (msg.text === '📦 Прорахувати вантаж') {
-                dialogStates.set(chatId, { step: 'awaitingPort', portPage: 0 });
-                await showItemsPage(bot, chatId, 0, 'departure', 'port');
-
-                return bot.sendMessage(chatId, 'Або натисніть кнопку для пошуку:', {
-                    reply_markup: {
-                        inline_keyboard: [[
-                            {
-                                text: '🔍 Пошук порту',
-                                switch_inline_query_current_chat: 'port '
-                            }
-                        ]]
+            if (db_user) {
+                if (user?.isEditing) {
+                    if (msg.text || msg.voice || msg.audio) {
+                        await handleCorrection(bot, msg, chatId, user, userState);
+                        // Don't delete userState here as it's needed for the confirmation step
+                        return;
+                    } else {
+                        await bot.sendMessage(chatId, 'Надішліль текст або аудіо з уточненням.');
+                        return;
                     }
-                });
-            }
-
-            if (state) {
-                if (state?.step === 'awaitingCity') {
-                    state.city = msg.text;
-                    state.step = 'awaitingVolume';
-                    return bot.sendMessage(chatId, 'Введіть обʼєм (м³):');
                 }
 
-                // Сценарій на введення об'єму
-                if (state?.step === 'awaitingVolume') {
-                    if (isNaN(parseFloat(msg.text))) return bot.sendMessage(chatId, 'Введіть коректне число (м³):');
-                    state.volume = parseFloat(msg.text);
-                    state.step = 'awaitingWeight';
-                    return bot.sendMessage(chatId, 'Введіть вагу (кг):');
+                if (sessionState === 'awaiting_gpt_input') {
+                    sessionMap.delete(chatId);
+
+                    if (isLikelyOrder(msg.text)) {
+                        await handleText(bot, msg.text, chatId);
+                    } else {
+                        await bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
+                    }
                 }
 
-                // Сценарій на введення ваги
-                if (state?.step === 'awaitingWeight') {
-                    if (isNaN(parseFloat(msg.text))) return bot.sendMessage(chatId, 'Введіть коректну вагу (кг):');
-                    state.weight = parseFloat(msg.text);
-                    state.step = 'awaitingConfirmation';
+                if (sessionState === 'awaiting_gpt_audio') {
+                    sessionMap.delete(chatId);
+                    if (msg.voice || msg.audio) {
+                        await handleAudio(bot, msg, chatId, userState);
+                    }
+                    // else await bot.sendMessage(chatId, 'Це не аудіо!')
+                }
 
-                    const summary = `*Деталі вантажу:*
+                if (msg.text === '🔊 Надіслати аудіо') {
+                    sessionMap.set(chatId, 'awaiting_gpt_audio');
+                    await bot.sendMessage(chatId, 'Надішліть голосове повідомлення з інформацією про замовлення.');
+                    return;
+                }
+
+                if (msg.text === '📝 Надіслати текст') {
+                    sessionMap.set(chatId, 'awaiting_gpt_input');
+                    await bot.sendMessage(chatId, 'Будь ласка, введіть текст замовлення на прорахунок вантажу.');
+                    return;
+                }
+
+                if (msg.text === '📦 Прорахувати вантаж') {
+                    dialogStates.set(chatId, {step: 'awaitingPort', portPage: 0});
+                    await showItemsPage(bot, chatId, 0, 'departure', 'port');
+
+                    return bot.sendMessage(chatId, 'Або натисніть кнопку для пошуку:', {
+                        reply_markup: {
+                            inline_keyboard: [[
+                                {
+                                    text: '🔍 Пошук порту',
+                                    switch_inline_query_current_chat: 'port '
+                                }
+                            ]]
+                        }
+                    });
+                }
+
+                if (state) {
+                    if (state?.step === 'awaitingCity') {
+                        state.city = msg.text;
+                        state.step = 'awaitingVolume';
+                        return bot.sendMessage(chatId, 'Введіть обʼєм (м³):');
+                    }
+
+                    // Сценарій на введення об'єму
+                    if (state?.step === 'awaitingVolume') {
+                        if (isNaN(parseFloat(msg.text))) return bot.sendMessage(chatId, 'Введіть коректне число (м³):');
+                        state.volume = parseFloat(msg.text);
+                        state.step = 'awaitingWeight';
+                        return bot.sendMessage(chatId, 'Введіть вагу (кг):');
+                    }
+
+                    // Сценарій на введення ваги
+                    if (state?.step === 'awaitingWeight') {
+                        if (isNaN(parseFloat(msg.text))) return bot.sendMessage(chatId, 'Введіть коректну вагу (кг):');
+                        state.weight = parseFloat(msg.text);
+                        state.step = 'awaitingConfirmation';
+
+                        const summary = `*Деталі вантажу:*
 🚢 *Відправлення:* ${state.port}
 📍 *Призначення:* ${state.city}
 ⚖️ *Вага:* ${state.weight} кг
@@ -199,53 +280,54 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
 
 Підтвердити замовлення?`;
 
-                    return bot.sendMessage(chatId, summary, {
-                        parse_mode: 'Markdown',
-                        reply_markup: {
-                            inline_keyboard: [
-                                [
-                                    { text: '✅ Підтвердити', callback_data: 'confirm' },
-                                    { text: '❌ Скасувати', callback_data: 'cancel' }
+                        return bot.sendMessage(chatId, summary, {
+                            parse_mode: 'Markdown',
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [
+                                        {text: '✅ Підтвердити', callback_data: 'confirm'},
+                                        {text: '❌ Скасувати', callback_data: 'cancel'}
+                                    ],
                                 ],
-                            ],
-                        },
+                            },
+                        });
+                    }
+                }
+
+                if (msg.text === 'ℹ️ Допомога') {
+                    await bot.sendMessage(chatId, 'Надішли текст або голосове повідомлення, а бот обробить вашу інформацію і прорахує суму доставки. Якщо аудіо дані не точні — ти зможеш їх уточнити.');
+                    return;
+                }
+
+                if (msg.text === '🏙️ Список міст') {
+                    await showItemsPage(bot, chatId, 0, 'list', 'city');
+
+                    return bot.sendMessage(chatId, 'Або натисни кнопку для пошуку:', {
+                        reply_markup: {
+                            inline_keyboard: [[
+                                {
+                                    text: '🔍 Пошук міста',
+                                    switch_inline_query_current_chat: 'city '
+                                }
+                            ]]
+                        }
                     });
                 }
-            }
 
-            if (msg.text === 'ℹ️ Допомога') {
-                await bot.sendMessage(chatId, 'Надішли текст або голосове повідомлення, а бот обробить вашу інформацію і прорахує суму доставки. Якщо аудіо дані не точні — ти зможеш їх уточнити.');
-                return;
-            }
+                if (msg.text === '🚢 Список портів') {
+                    await showItemsPage(bot, chatId, 0, 'list', 'port');
 
-            if (msg.text === '🏙️ Список міст') {
-                 await showItemsPage(bot, chatId, 0, 'list', 'city');
-
-                return bot.sendMessage(chatId, 'Або натисни кнопку для пошуку:', {
-                    reply_markup: {
-                        inline_keyboard: [[
-                            {
-                                text: '🔍 Пошук міста',
-                                switch_inline_query_current_chat: 'city '
-                            }
-                        ]]
-                    }
-                });
-            }
-
-            if (msg.text === '🚢 Список портів') {
-                await showItemsPage(bot, chatId, 0, 'list', 'port');
-
-                return bot.sendMessage(chatId, 'Або натисніть кнопку для пошуку:', {
-                    reply_markup: {
-                        inline_keyboard: [[
-                            {
-                                text: '🔍 Пошук порту',
-                                switch_inline_query_current_chat: 'port '
-                            }
-                        ]]
-                    }
-                });
+                    return bot.sendMessage(chatId, 'Або натисніть кнопку для пошуку:', {
+                        reply_markup: {
+                            inline_keyboard: [[
+                                {
+                                    text: '🔍 Пошук порту',
+                                    switch_inline_query_current_chat: 'port '
+                                }
+                            ]]
+                        }
+                    });
+                }
             }
         } catch (error) {
             console.error('❌ Error:', error);
