@@ -282,9 +282,10 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
 Є початковий об'єкт замовлення з деякими некоректними даними (confidence: false) або (value: null):
 """${JSON.stringify(user.originalData)}"""
 
+Решта полів (confidence: true) повинні **залишитись, які були**
+
 Користувач уточнив наступне:
 """${cleanedText}"""
-
 `;
 
     const prompt = getPrompt(combinedPrompt);
