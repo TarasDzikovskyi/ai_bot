@@ -204,11 +204,10 @@ async function handleText(bot, text, chatId) {
 
     const cleanedParsed = normalizeFromTo(JSON.parse(replyGPT));
     const reply = JSON.stringify(cleanedParsed);
-    console.log(reply)
+    // console.log(reply)
 
 
     if(reply.includes('null') || reply.includes('false')){
-        await bot.sendMessage(chatId, reply);
         const obj = JSON.parse(reply);
         await bot.sendMessage(chatId, `Прорахунок неможливий.
 ${(!obj.from.value || !obj.from.confidence) ? 'Поле "порт відправлення" некоректне.' : ''}

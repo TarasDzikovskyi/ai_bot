@@ -154,7 +154,7 @@ module.exports = {
         { text: 'Агмедабад', value: 'AHMEDABAD', code: 'INAMD' },
         { text: 'Александрія', value: 'ALEXANDRIA', code: 'EGALY' },
         { text: 'Альтаміра', value: 'ALTAMIRA (MEXICO)', code: 'MXATM' },
-        { text: 'Антланта', value: 'ATLANTA', code: 'USATL' },
+        { text: 'Атланта', value: 'ATLANTA', code: 'USATL' },
         { text: 'Асунсьйон', value: 'ASUNCION', code: 'PYASU' },
         { text: 'Ашдод', value: 'ASHDOD', code: 'ILASH' },
         { text: 'Балтимор', value: 'BALTIMORE', code: 'USBAL' },
