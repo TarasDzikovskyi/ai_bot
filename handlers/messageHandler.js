@@ -1,7 +1,7 @@
 const {showItemsPage} = require('../utils/pagination');
 const {isLikelyOrder} = require('../utils/utils');
 const {handleAudio, handleText, handleCorrection} = require('../services/openai.service');
-const {ports, cities} = require('../constants')
+const {ports, cities, allowedTextCommands} = require('../constants')
 const JSONdb = require('simple-json-db');
 const db = new JSONdb('people.json');
 
@@ -194,6 +194,18 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
 
 
             if (db_user) {
+                if(!allowedTextCommands.includes(msg.text) && !msg.voice && !msg.audio){
+                    if (isLikelyOrder(msg.text)) {
+                        await handleText(bot, msg.text, chatId);
+                    } else {
+                        await bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
+                    }
+                }
+
+                if (msg.voice || msg.audio) {
+                    await handleAudio(bot, msg, chatId, userState);
+                }
+
                 if (user?.isEditing) {
                     if (msg.text || msg.voice || msg.audio) {
                         await handleCorrection(bot, msg, chatId, user, userState);
@@ -205,23 +217,23 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
                     }
                 }
 
-                if (sessionState === 'awaiting_gpt_input') {
-                    sessionMap.delete(chatId);
+                // if (sessionState === 'awaiting_gpt_input') {
+                //     sessionMap.delete(chatId);
+                //
+                //     if (isLikelyOrder(msg.text)) {
+                //         await handleText(bot, msg.text, chatId);
+                //     } else {
+                //         await bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
+                //     }
+                // }
 
-                    if (isLikelyOrder(msg.text)) {
-                        await handleText(bot, msg.text, chatId);
-                    } else {
-                        await bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
-                    }
-                }
-
-                if (sessionState === 'awaiting_gpt_audio') {
-                    sessionMap.delete(chatId);
-                    if (msg.voice || msg.audio) {
-                        await handleAudio(bot, msg, chatId, userState);
-                    }
-                    // else await bot.sendMessage(chatId, 'Це не аудіо!')
-                }
+                // if (sessionState === 'awaiting_gpt_audio') {
+                //     sessionMap.delete(chatId);
+                //     if (msg.voice || msg.audio) {
+                //         await handleAudio(bot, msg, chatId, userState);
+                //     }
+                //     // else await bot.sendMessage(chatId, 'Це не аудіо!')
+                // }
 
                 if (msg.text === '🔊 Надіслати аудіо') {
                     sessionMap.set(chatId, 'awaiting_gpt_audio');
@@ -293,6 +305,9 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
                         });
                     }
                 }
+
+
+
 
                 if (msg.text === 'ℹ️ Допомога') {
                     await bot.sendMessage(chatId, 'Надішли текст або голосове повідомлення, а бот обробить вашу інформацію і прорахує суму доставки. Якщо аудіо дані не точні — ти зможеш їх уточнити.');

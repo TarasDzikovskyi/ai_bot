@@ -6,7 +6,8 @@ const {connectTo1C} = require('./data1C.service');
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const text_model = 'gpt-3.5-turbo'; // gpt-4-turbo
+const text_model = 'gpt-3.5-turbo';
+// const text_model = 'gpt-4-turbo';
 const audio_model = 'whisper-1';
 
 
@@ -69,7 +70,7 @@ function getPrompt(text) {
 
 ⚠️ **Уточнення**:
 
-- Якщо вказано "тона" — переведи у **кг** (1 тонна = 1000 кг)
+- Якщо вказано "тона" — переведи у **кг** (1 тонна = 1000 кг) ВИЗНАЧАЙ ПРАВИЛЬНО
 - Якщо вказано "літр" — не враховуй (поверни volume: null)
 - Якщо вказано "м³", "куб", "кубічний метр" — враховуй як обʼєм
 - Якщо не впевнений у значенні — краще повертай 'null' + 'confidence: false'
@@ -80,6 +81,30 @@ function getPrompt(text) {
 Ось текст замовлення:
 """${text}"""
 `;
+}
+
+function getPromptResponse(text){
+
+    const prompt = `
+    Ось текст з даними:
+"""${text}"""
+
+Працюй чітко за правилами:
+
+    ти досвідчений логіст!
+дай мені емоційно-насичену відповідь за цими даними в дуже позитивному ключі!
+використай дані для відповіді!
+Важливо (
+TotalRateCFS - доставка через склад; 
+TotalRatePD - доставка по ПД;
+Volume - вказано в м³;
+Weight - вказано в кг
+) 
+
+Суму потрібно виділити жирним текстом однією "*", а не "**"
+`
+
+return prompt
 }
 
 
@@ -198,7 +223,7 @@ async function handleText(bot, text, chatId) {
         messages: [{ role: 'user', content: prompt }]
     });
 
-    console.log(gptResponse)
+    // console.log(gptResponse)
 
     const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
 
@@ -398,15 +423,31 @@ async function data1CHandler(reply, chatId, bot, processingMsg){
 
 
     if(resultPrice.status === 'ok' && resultPrice.successfully){
-        const text = formatShippingResult(resultPrice);
+        // const text = formatShippingResult(resultPrice);
+
+        const {status, successfully, Rate, ...result} = resultPrice;
+
+        result.TotalRateCFS = Rate.TotalRateCFS;
+        result.TotalRatePD = Rate.TotalRatePD;
+
+        const prompt = getPromptResponse(JSON.stringify(result));
+
+        const gptResponse = await openai.chat.completions.create({
+            model: text_model,
+            messages: [{ role: 'user', content: prompt }]
+        });
+
+        const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
+
+        console.log(replyGPT)
 
         if(processingMsg){
-            await bot.editMessageText(text, {
+            await bot.editMessageText(replyGPT, {
                 chat_id: chatId,
                 message_id: processingMsg.message_id,
                 parse_mode: 'Markdown'
             })
-        }else await bot.sendMessage(chatId, text, {parse_mode: 'Markdown'})
+        }else await bot.sendMessage(chatId, replyGPT, {parse_mode: 'Markdown'})
     }
 
     if(resultPrice.status === 'NOT OK'){

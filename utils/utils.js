@@ -37,7 +37,8 @@ function isLikelyOrder(text) {
     const keywords = [
         'доставка', 'порт', 'море', 'контейнер', 'порту', 'міста', 'кубів', 'куба', 'куб',
         'відправка', 'обʼєм', 'вага', 'м³', 'кг', 'місто', 'кілограмів', 'кілограм',
-        'to', 'from', 'shipment', 'cargo', 'volume', 'weight', 'city'
+        'to', 'from', 'shipment', 'cargo', 'volume', 'weight', 'city', 'місце доставки', 'місце', 'доставки',
+        'kg', 'cbm', 'CBM', 'pallets', 'тонн', 'вартість', 'порахуй', 'ціну'
     ];
 
     const lowerText = text.toLowerCase();
