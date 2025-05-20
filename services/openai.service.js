@@ -373,8 +373,8 @@ function formatShippingResult(data) {
 
 
 *Розрахунок:*
-🚚 *Доставка до складу:* ${data.Rate.TotalRateCFS} $
-🚪 *Доставка до дверей:* ${data.Rate.TotalRatePD} $
+🚚 *Доставка через склад:* ${data.Rate.TotalRateCFS} $
+🚪 *Доставка по ПД:* ${data.Rate.TotalRatePD} $
 `;
 }
 
