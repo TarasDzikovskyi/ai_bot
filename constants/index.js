@@ -303,7 +303,7 @@ module.exports = {
         { text: 'Івано-Франківськ', value: 'IVANO FRANKIVSK' },
         { text: 'Ізмаїл', value: 'ISMAIL' },
         { text: 'Калуш', value: 'KALUSH' },
-        { text: 'Київ', value: 'KIEV' },
+        { text: 'Київ', value: 'KYIV' },
         { text: 'Ковель', value: 'KOVEL' },
         { text: 'Конотоп', value: 'KONOTOP' },
         { text: 'Краматорськ', value: 'KRAMATORSK' },
