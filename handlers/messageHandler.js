@@ -306,9 +306,6 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
                     }
                 }
 
-
-
-
                 if (msg.text === 'ℹ️ Допомога') {
                     await bot.sendMessage(chatId, 'Надішли текст або голосове повідомлення, а бот обробить вашу інформацію і прорахує суму доставки. Якщо аудіо дані не точні — ти зможеш їх уточнити.');
                     return;

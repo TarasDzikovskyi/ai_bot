@@ -3,6 +3,9 @@ const fs = require('fs');
 const { downloadFile, normalizeTextWithFuzzyMatch, normalizeFromTo, isLikelyOrder} = require('../utils/utils');
 const {ports, cities} = require('../constants')
 const {connectTo1C} = require('./data1C.service');
+const {post} = require("axios");
+const { v4: uuidv4 } = require('uuid');
+
 
 // Initialize OpenAI client
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -91,7 +94,7 @@ function getPromptResponse(text){
 
 Працюй чітко за правилами:
 
-    ти досвідчений логіст!
+    ти досвідчена жінка логістка!
 дай мені емоційно-насичену відповідь за цими даними в дуже позитивному ключі!
 використай дані для відповіді!
 Важливо (
@@ -441,13 +444,15 @@ async function data1CHandler(reply, chatId, bot, processingMsg){
 
         console.log(replyGPT)
 
-        if(processingMsg){
-            await bot.editMessageText(replyGPT, {
-                chat_id: chatId,
-                message_id: processingMsg.message_id,
-                parse_mode: 'Markdown'
-            })
-        }else await bot.sendMessage(chatId, replyGPT, {parse_mode: 'Markdown'})
+        // if(processingMsg){
+        //     await bot.editMessageText(replyGPT, {
+        //         chat_id: chatId,
+        //         message_id: processingMsg.message_id,
+        //         parse_mode: 'Markdown'
+        //     })
+        // }else await bot.sendMessage(chatId, replyGPT, {parse_mode: 'Markdown'})
+
+        await createAudio(bot, replyGPT, chatId);
     }
 
     if(resultPrice.status === 'NOT OK'){
@@ -457,6 +462,73 @@ async function data1CHandler(reply, chatId, bot, processingMsg){
 
 
     }
+}
+
+
+async function createAudio(bot, text, chatId){
+    try {
+
+        const API_KEY = 'AIzaSyDYsyq_eRkG3ghAdaZ4IiWlBHvNpvReTA8';
+        const url = `https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${API_KEY}`;
+
+        const data = {
+            audioConfig: {
+                audioEncoding: "LINEAR16",
+                effectsProfileId: ["small-bluetooth-speaker-class-device"],
+                pitch: 0,
+                speakingRate: 1
+            },
+            input: {
+                text: cleanText(text)
+            },
+            voice: {
+                languageCode: "uk-UA",
+                name: "uk-UA-Chirp3-HD-Achernar"
+            }
+        };
+
+        const response = await post(url, data);
+        const audioContent = response.data.audioContent;
+
+        if (!audioContent) throw new Error("Немає аудіо у відповіді.");
+
+        // Зберігаємо тимчасовий файл
+        const fileName = `voice_${uuidv4()}.wav`;
+        const filePath = `./${fileName}`;
+        fs.writeFileSync(filePath, Buffer.from(audioContent, 'base64'));
+
+        // Надсилаємо як голосове повідомлення
+        await bot.sendVoice(chatId, fs.createReadStream(filePath));
+
+        // Видаляємо файл після надсилання
+        fs.unlinkSync(filePath);
+        console.log('Голосове повідомлення надіслано і файл видалено.');
+
+        // const speechResponse = await openai.audio.speech.create({
+        //     model: 'tts-1',
+        //     voice: 'shimmer', // інші голоси: alloy, echo, fable, onyx, shimmer
+        //     input: text,
+        // });
+        //
+        // const buffer = Buffer.from(await speechResponse.arrayBuffer());
+        // const filePath = `./voice_${chatId}.mp3`;
+        // fs.writeFileSync(filePath, buffer);
+        //
+        // await bot.sendVoice(chatId, fs.createReadStream(filePath));
+        //
+        // fs.unlinkSync(filePath);
+    } catch (e) {
+        await bot.sendMessage(chatId, 'Проблема з прорахунком. Спробуйте пізніше!', );
+        console.log(e)
+    }
+}
+
+function cleanText(text) {
+    let cleaned = text.replace(/\*/g, '');
+
+    cleaned = cleaned.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|[\uD83C-\uDBFF\uDC00-\uDFFF])/g, '');
+
+    return cleaned.trim();
 }
 
 module.exports = {
