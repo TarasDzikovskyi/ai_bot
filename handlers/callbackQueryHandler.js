@@ -2,12 +2,13 @@ const { showItemsPage } = require('../utils/pagination');
 const {formatShippingInfo, data1CHandler} = require("../services/openai.service");
 
 
-function setupCallbackQueryHandler(bot, userState, dialogStates) {
+function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap) {
     bot.on('callback_query', async (query) => {
         const chatId = query?.message?.chat?.id || query?.from?.id;
         console.log(chatId)
         const user = userState.get(chatId);
         const state = dialogStates.get(chatId);
+        const sessionState = sessionMap.get(chatId);
 
         console.log('======================================')
         console.log(userState)

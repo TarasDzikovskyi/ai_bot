@@ -94,8 +94,8 @@ function getPromptResponse(text){
 
 Працюй чітко за правилами:
 
-    ти досвідчена жінка логістка!
-дай мені емоційно-насичену відповідь за цими даними в дуже позитивному ключі!
+    ти досвідчена жінка логіст!
+дай мені емоційно-насичену відповідь за цими даними в дуже позитивному ключі, щоб клієнт захотів замовити доставку товару!
 використай дані для відповіді!
 Важливо (
 TotalRateCFS - доставка через склад; 
@@ -111,7 +111,10 @@ return prompt
 }
 
 
-async function handleAudio(bot, msg, chatId, userState) {
+async function handleAudio(bot, msg, chatId, userState, sessionMap) {
+    const sessionState = sessionMap.get(chatId);
+    sessionMap.delete(chatId);
+
     const fileId = msg.voice?.file_id || msg.audio?.file_id;
 
     const file = await bot.getFile(fileId);
@@ -204,7 +207,7 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
             // Відправляємо результат користувачеві
             const data = formatShippingInfo(reply);
             const message = await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
-            await data1CHandler(reply, chatId, bot, message);
+            await data1CHandler(reply, chatId, bot, message, sessionState);
         }
     } catch (error) {
         console.error('❌ Error in audio processing:', error);
@@ -216,7 +219,10 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
 }
 
 
-async function handleText(bot, text, chatId) {
+async function handleText(bot, text, chatId, sessionMap) {
+    const sessionState = sessionMap.get(chatId);
+    sessionMap.delete(chatId);
+
     const cleanedText = normalizeTextWithFuzzyMatch(text);
 
     const prompt = getPrompt(cleanedText);
@@ -235,6 +241,7 @@ async function handleText(bot, text, chatId) {
     // console.log(reply)
 
 
+
     if(reply.includes('null') || reply.includes('false')){
         const obj = JSON.parse(reply);
         await bot.sendMessage(chatId, `Прорахунок неможливий.
@@ -246,7 +253,7 @@ ${(!obj.volume.value || !obj.volume.confidence) ? 'Поле "об`єм" неко
     } else {
         const data = formatShippingInfo(reply);
         const processingMsg = await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
-        await data1CHandler(reply, chatId, bot, processingMsg);
+        await data1CHandler(reply, chatId, bot, processingMsg, sessionState);
     }
 
 }
@@ -407,7 +414,7 @@ function formatShippingResult(data) {
 }
 
 
-async function data1CHandler(reply, chatId, bot, processingMsg){
+async function data1CHandler(reply, chatId, bot, processingMsg, sessionState){
     const {from, to, volume, weight} = JSON.parse(reply);
 
     if(!from.value || !to.value || !volume.value || !weight.value){
@@ -444,15 +451,21 @@ async function data1CHandler(reply, chatId, bot, processingMsg){
 
         console.log(replyGPT)
 
-        // if(processingMsg){
-        //     await bot.editMessageText(replyGPT, {
-        //         chat_id: chatId,
-        //         message_id: processingMsg.message_id,
-        //         parse_mode: 'Markdown'
-        //     })
-        // }else await bot.sendMessage(chatId, replyGPT, {parse_mode: 'Markdown'})
+        if(sessionState === 'awaiting_gpt_audio'){
+            return await createAudio(bot, replyGPT, chatId);
+        } else {
+            if(processingMsg){
+                await bot.editMessageText(replyGPT, {
+                    chat_id: chatId,
+                    message_id: processingMsg.message_id,
+                    parse_mode: 'Markdown'
+                })
+            }else await bot.sendMessage(chatId, replyGPT, {parse_mode: 'Markdown'})
+        }
 
-        await createAudio(bot, replyGPT, chatId);
+
+
+        // await createAudio(bot, replyGPT, chatId);
     }
 
     if(resultPrice.status === 'NOT OK'){

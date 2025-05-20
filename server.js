@@ -69,7 +69,7 @@ app.use((req, res, next) => {
 
 setupMessageHandler(bot, userState, dialogStates, sessionMap);
 
-setupCallbackQueryHandler(bot, userState, dialogStates);
+setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap);
 
 
 app.use('/api/data1c', data1cRouter);

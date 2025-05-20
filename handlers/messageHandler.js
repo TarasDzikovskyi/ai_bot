@@ -196,14 +196,16 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
             if (db_user) {
                 if(!allowedTextCommands.includes(msg.text) && !msg.voice && !msg.audio){
                     if (isLikelyOrder(msg.text)) {
-                        await handleText(bot, msg.text, chatId);
+                        sessionMap.set(chatId, 'awaiting_gpt_input');
+                        await handleText(bot, msg.text, chatId, sessionMap);
                     } else {
                         await bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
                     }
                 }
 
                 if (msg.voice || msg.audio) {
-                    await handleAudio(bot, msg, chatId, userState);
+                    sessionMap.set(chatId, 'awaiting_gpt_audio');
+                    await handleAudio(bot, msg, chatId, userState, sessionMap);
                 }
 
                 if (user?.isEditing) {
