@@ -2,7 +2,7 @@
 
 module.exports.approveUser = async (req, res, next) => {
     try {
-        console.log(req)
+        console.log(req.body)
 
 
     } catch (e) {
