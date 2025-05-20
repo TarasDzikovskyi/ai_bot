@@ -7,6 +7,8 @@ const data1cRouter = require('./routes/data1C.router');
 const {cron_job} = require('./services/cronjob.service')
 const { rateLimit } = require('express-rate-limit');
 const cors = require('cors');
+const bodyParser = require('body-parser');
+const expressFileUpload = require('express-fileupload');
 
 const app = express();
 const port = process.env.PORT || 8088;
@@ -48,7 +50,9 @@ const corsOptions = {
 
 app.use(limiter)
 app.use(cors(corsOptions));
-
+app.use(express.json());
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(expressFileUpload());
 
 cron_job.start();
 
