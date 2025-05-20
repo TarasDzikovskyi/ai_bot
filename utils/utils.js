@@ -58,18 +58,20 @@ function normalizeTextWithFuzzyMatch(text) {
     const words = text.split(/[\s,.;()!?]+/); // розбити текст на слова
 
     for (const word of words) {
-        // Пошук серед портів
-        const [bestPortMatch, portScore] = fuzz.extract(word, portNames, { scorer: fuzz.ratio, returnObjects: false })[0];
-        if (portScore >= 70) {
-            const reg = new RegExp(word, 'gi');
-            normalizedText = normalizedText.replace(reg, bestPortMatch);
-        }
+        if(word.toLowerCase() !== 'дай'){
+            // Пошук серед портів
+            const [bestPortMatch, portScore] = fuzz.extract(word, portNames, { scorer: fuzz.ratio, returnObjects: false })[0];
+            if (portScore >= 70) {
+                const reg = new RegExp(word, 'gi');
+                normalizedText = normalizedText.replace(reg, bestPortMatch);
+            }
 
-        // Пошук серед міст
-        const [bestCityMatch, cityScore] = fuzz.extract(word, cityNames, { scorer: fuzz.ratio, returnObjects: false })[0];
-        if (cityScore >= 70) {
-            const reg = new RegExp(word, 'gi');
-            normalizedText = normalizedText.replace(reg, bestCityMatch);
+            // Пошук серед міст
+            const [bestCityMatch, cityScore] = fuzz.extract(word, cityNames, { scorer: fuzz.ratio, returnObjects: false })[0];
+            if (cityScore >= 70) {
+                const reg = new RegExp(word, 'gi');
+                normalizedText = normalizedText.replace(reg, bestCityMatch);
+            }
         }
     }
 

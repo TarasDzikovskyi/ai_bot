@@ -58,16 +58,17 @@ cron_job.start();
 
 const { bot, userState, dialogStates, sessionMap } = require('./config/bot.config');
 
-// Import handlers
+
+app.use((req, res, next) => {
+    req.bot = bot;
+    next();
+});
 
 
-// Set up command handlers
 // setupCommandHandlers(bot);
 
-// Set up message handler
 setupMessageHandler(bot, userState, dialogStates, sessionMap);
 
-// Set up callback query handler
 setupCallbackQueryHandler(bot, userState, dialogStates);
 
 
