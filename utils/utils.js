@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const fuzz = require('fuzzball');
-const { ports, cities } = require('../constants');
+const { ports, cities, skipWords } = require('../constants');
 
 
 async function downloadFile(url, filename) {
@@ -58,7 +58,7 @@ function normalizeTextWithFuzzyMatch(text) {
     const words = text.split(/[\s,.;()!?]+/); // розбити текст на слова
 
     for (const word of words) {
-        if(word.toLowerCase() !== 'дай'){
+        if (!skipWords.includes(word.toLowerCase())) {
             // Пошук серед портів
             const [bestPortMatch, portScore] = fuzz.extract(word, portNames, { scorer: fuzz.ratio, returnObjects: false })[0];
             if (portScore >= 70) {

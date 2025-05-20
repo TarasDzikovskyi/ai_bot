@@ -7,6 +7,9 @@ module.exports = {
 
     allowedCorsOrigins: [''],
 
+    skipWords: ['дай', 'будь', 'будьласка', 'ласка'],
+
+
     ports: [
         { text: 'Агмедабад', value: 'AHMEDABAD', code: 'INAMD' },
         { text: 'Александрія', value: 'ALEXANDRIA', code: 'EGALY' },
