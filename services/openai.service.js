@@ -205,7 +205,7 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
             // Відправляємо результат користувачеві
             const data = formatShippingInfo(reply);
             const message = await bot.sendMessage(chatId, data, {parse_mode: 'Markdown'});
-            await data1CHandler(reply, chatId, bot, message, sessionState);
+            await data1CHandler(reply, chatId, bot, message, sessionState, sessionMap);
         }
     } catch (error) {
         console.error('❌ Error in audio processing:', error);
@@ -250,7 +250,7 @@ ${(!obj.volume.value || !obj.volume.confidence) ? 'Поле "об`єм" неко
     } else {
         const data = formatShippingInfo(reply);
         const processingMsg = await bot.sendMessage(chatId, data, {parse_mode: 'Markdown'});
-        await data1CHandler(reply, chatId, bot, processingMsg, sessionState);
+        await data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap);
     }
 
 }
@@ -411,7 +411,7 @@ function formatShippingResult(data) {
 }
 
 
-async function data1CHandler(reply, chatId, bot, processingMsg, sessionState) {
+async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap) {
     const {from, to, volume, weight} = JSON.parse(reply);
 
     if (!from.value || !to.value || !volume.value || !weight.value) {
@@ -459,7 +459,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState) {
 
         if (sessionState === 'awaiting_gpt_audio') {
             await createAudio(bot, replyGPT, chatId);
-            return await sendInfo(bot, chatId, sessionState);
+            return await sendInfo(bot, chatId, sessionMap);
         } else {
             if (processingMsg) {
                 await bot.editMessageText(replyGPT, {
@@ -468,7 +468,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState) {
                     parse_mode: 'Markdown'
                 })
             } else await bot.sendMessage(chatId, replyGPT, {parse_mode: 'Markdown'})
-            return await sendInfo(bot, chatId, sessionState);
+            return await sendInfo(bot, chatId, sessionMap);
         }
 
 
@@ -552,8 +552,8 @@ function cleanText(text) {
 }
 
 
-async function sendInfo(bot, chatId, sessionState) {
-    sessionState.set(chatId, 'awaiting_data1c')
+async function sendInfo(bot, chatId, sessionMap) {
+    sessionMap.set(chatId, 'awaiting_data1c')
 
     const attentionInfo = `info about attention`;
 
