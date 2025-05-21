@@ -130,7 +130,7 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
 
         const db = new JSONdb('people.json');
         const db_user = db.get(chatId);
-        console.log(db_user)
+        // console.log(db_user)
 
         if (contact) {
             if (!contact.phone_number.includes('+')) contact.phone_number = `+${contact.phone_number}`;

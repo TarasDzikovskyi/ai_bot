@@ -160,6 +160,14 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap) {
             // Do nothing, just answer the callback query
         }
 
+        else if (query.data === 'data1c_confirm') {
+            return bot.sendMessage(chatId, 'Дякуємо, заявку сформовано.')
+        }
+
+        else if (query.data === 'data1c_cancel') {
+            return bot.sendMessage(chatId, 'Добре, Заявку не буде сформовано.')
+        }
+
         await bot.answerCallbackQuery(query.id);
     });
 }

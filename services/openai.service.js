@@ -1,18 +1,17 @@
-const { OpenAI } = require('openai');
+const {OpenAI} = require('openai');
 const fs = require('fs');
-const { downloadFile, normalizeTextWithFuzzyMatch, normalizeFromTo, isLikelyOrder} = require('../utils/utils');
+const {downloadFile, normalizeTextWithFuzzyMatch, normalizeFromTo, isLikelyOrder} = require('../utils/utils');
 const {ports, cities} = require('../constants')
 const {connectTo1C} = require('./data1C.service');
 const {post} = require("axios");
-const { v4: uuidv4 } = require('uuid');
+const {v4: uuidv4} = require('uuid');
 
 
 // Initialize OpenAI client
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 const text_model = 'gpt-3.5-turbo';
 // const text_model = 'gpt-4-turbo';
 const audio_model = 'whisper-1';
-
 
 
 function getPrompt(text) {
@@ -86,7 +85,7 @@ function getPrompt(text) {
 `;
 }
 
-function getPromptResponse(text){
+function getPromptResponse(text) {
 
     const prompt = `
     Ось текст з даними:
@@ -107,7 +106,7 @@ Weight - вказано в кг
 Суму потрібно виділити жирним текстом однією "*", а не "**"
 `
 
-return prompt
+    return prompt
 }
 
 
@@ -142,7 +141,7 @@ async function handleAudio(bot, msg, chatId, userState, sessionMap) {
         // Форматування тексту
         const cleanedText = normalizeTextWithFuzzyMatch(text);
 
-        if(!isLikelyOrder(cleanedText)){
+        if (!isLikelyOrder(cleanedText)) {
             return bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
         }
 
@@ -151,14 +150,13 @@ async function handleAudio(bot, msg, chatId, userState, sessionMap) {
 
         const gptResponse = await openai.chat.completions.create({
             model: text_model,
-            messages: [{ role: 'user', content: prompt }]
+            messages: [{role: 'user', content: prompt}]
         });
 
         const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
 
         const cleanedParsed = normalizeFromTo(JSON.parse(replyGPT));
         const reply = JSON.stringify(cleanedParsed);
-
 
 
         let parsed;
@@ -180,7 +178,7 @@ async function handleAudio(bot, msg, chatId, userState, sessionMap) {
 
 
         if (!parsed.from.confidence || !parsed.to.confidence || !parsed.weight.confidence || !parsed.volume.confidence
-        || !parsed.from.value || !parsed.to.value || !parsed.weight.value || !parsed.volume.value) {
+            || !parsed.from.value || !parsed.to.value || !parsed.weight.value || !parsed.volume.value) {
             userState.set(chatId, {
                 originalText: cleanedText,
                 originalData: parsed,
@@ -199,14 +197,14 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
             await bot.sendMessage(chatId, errorMessage, {
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: 'Так', callback_data: 'edit_yes' }, { text: 'Ні', callback_data: 'edit_no' }]
+                        [{text: 'Так', callback_data: 'edit_yes'}, {text: 'Ні', callback_data: 'edit_no'}]
                     ]
                 }
             });
         } else {
             // Відправляємо результат користувачеві
             const data = formatShippingInfo(reply);
-            const message = await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
+            const message = await bot.sendMessage(chatId, data, {parse_mode: 'Markdown'});
             await data1CHandler(reply, chatId, bot, message, sessionState);
         }
     } catch (error) {
@@ -229,7 +227,7 @@ async function handleText(bot, text, chatId, sessionMap) {
 
     const gptResponse = await openai.chat.completions.create({
         model: text_model,
-        messages: [{ role: 'user', content: prompt }]
+        messages: [{role: 'user', content: prompt}]
     });
 
     // console.log(gptResponse)
@@ -241,8 +239,7 @@ async function handleText(bot, text, chatId, sessionMap) {
     // console.log(reply)
 
 
-
-    if(reply.includes('null') || reply.includes('false')){
+    if (reply.includes('null') || reply.includes('false')) {
         const obj = JSON.parse(reply);
         await bot.sendMessage(chatId, `Прорахунок неможливий.
 ${(!obj.from.value || !obj.from.confidence) ? 'Поле "порт відправлення" некоректне.' : ''}
@@ -252,7 +249,7 @@ ${(!obj.volume.value || !obj.volume.confidence) ? 'Поле "об`єм" неко
 `);
     } else {
         const data = formatShippingInfo(reply);
-        const processingMsg = await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
+        const processingMsg = await bot.sendMessage(chatId, data, {parse_mode: 'Markdown'});
         await data1CHandler(reply, chatId, bot, processingMsg, sessionState);
     }
 
@@ -272,8 +269,8 @@ async function handlePhoto(bot, msg, chatId) {
             {
                 role: "user",
                 content: [
-                    { type: "text", content: "Проаналізуй це зображення або витягни дані з нього." },
-                    { type: "image_url", image_url: { url: fileUrl } }
+                    {type: "text", content: "Проаналізуй це зображення або витягни дані з нього."},
+                    {type: "image_url", image_url: {url: fileUrl}}
                 ]
             }
         ]
@@ -326,7 +323,7 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
 
     const gptResponse = await openai.chat.completions.create({
         model: text_model,
-        messages: [{ role: 'user', content: prompt }]
+        messages: [{role: 'user', content: prompt}]
     });
 
     const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
@@ -347,8 +344,8 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: '✅ Все вірно', callback_data: 'confirm_correct' },
-                        { text: '❌ Скасувати', callback_data: 'cancel_all' }
+                        {text: '✅ Все вірно', callback_data: 'confirm_correct'},
+                        {text: '❌ Скасувати', callback_data: 'cancel_all'}
                     ]
                 ]
             }
@@ -369,8 +366,8 @@ async function handleCorrection(bot, msg, chatId, user, userState) {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: '✅ Все вірно', callback_data: 'confirm_correct' },
-                    { text: '❌ Скасувати', callback_data: 'cancel_all' }
+                    {text: '✅ Все вірно', callback_data: 'confirm_correct'},
+                    {text: '❌ Скасувати', callback_data: 'cancel_all'}
                 ]
             ]
         }
@@ -414,15 +411,15 @@ function formatShippingResult(data) {
 }
 
 
-async function data1CHandler(reply, chatId, bot, processingMsg, sessionState){
+async function data1CHandler(reply, chatId, bot, processingMsg, sessionState) {
     const {from, to, volume, weight} = JSON.parse(reply);
 
-    if(!from.value || !to.value || !volume.value || !weight.value){
-        return bot.sendMessage(chatId, 'Проблема з прорахунком. Немає всіх даних!' );
+    if (!from.value || !to.value || !volume.value || !weight.value) {
+        return bot.sendMessage(chatId, 'Проблема з прорахунком. Немає всіх даних!');
     }
 
-    if(volume.value > 50 || weight.value > 12000){
-        return bot.sendMessage(chatId, 'Будь ласка зв`яжіться з вашим менеджером для актуального прорахунку' );
+    if (volume.value > 50 || weight.value > 12000) {
+        return bot.sendMessage(chatId, 'Будь ласка зв`яжіться з вашим менеджером для актуального прорахунку');
     }
 
     const aiData = JSON.parse(reply);
@@ -441,7 +438,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState){
     console.log('============RESULT FORM 1C===============')
 
 
-    if(resultPrice.status === 'ok' && resultPrice.successfully){
+    if (resultPrice.status === 'ok' && resultPrice.successfully) {
         // const text = formatShippingResult(resultPrice);
 
         const {status, successfully, Rate, ...result} = resultPrice;
@@ -453,41 +450,41 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState){
 
         const gptResponse = await openai.chat.completions.create({
             model: text_model,
-            messages: [{ role: 'user', content: prompt }]
+            messages: [{role: 'user', content: prompt}]
         });
 
         const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
 
         console.log(replyGPT)
 
-        if(sessionState === 'awaiting_gpt_audio'){
-            return await createAudio(bot, replyGPT, chatId);
+        if (sessionState === 'awaiting_gpt_audio') {
+            await createAudio(bot, replyGPT, chatId);
+            return await sendInfo(bot, chatId);
         } else {
-            if(processingMsg){
+            if (processingMsg) {
                 await bot.editMessageText(replyGPT, {
                     chat_id: chatId,
                     message_id: processingMsg.message_id,
                     parse_mode: 'Markdown'
                 })
-            }else await bot.sendMessage(chatId, replyGPT, {parse_mode: 'Markdown'})
+            } else await bot.sendMessage(chatId, replyGPT, {parse_mode: 'Markdown'})
+            return await sendInfo(bot, chatId);
         }
-
 
 
         // await createAudio(bot, replyGPT, chatId);
     }
 
-    if(resultPrice.status === 'NOT OK'){
-        await bot.sendMessage(chatId, 'Проблема з прорахунком. Спробуйте пізніше!', );
+    if (resultPrice.status === 'NOT OK') {
+        await bot.sendMessage(chatId, 'Проблема з прорахунком. Спробуйте пізніше!',);
     } else {
-
 
 
     }
 }
 
 
-async function createAudio(bot, text, chatId){
+async function createAudio(bot, text, chatId) {
     try {
 
         const API_KEY = 'AIzaSyDYsyq_eRkG3ghAdaZ4IiWlBHvNpvReTA8';
@@ -540,7 +537,7 @@ async function createAudio(bot, text, chatId){
         //
         // fs.unlinkSync(filePath);
     } catch (e) {
-        await bot.sendMessage(chatId, 'Проблема з прорахунком. Спробуйте пізніше!', );
+        await bot.sendMessage(chatId, 'Проблема з прорахунком. Спробуйте пізніше!',);
         console.log(e)
     }
 }
@@ -551,6 +548,24 @@ function cleanText(text) {
     cleaned = cleaned.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|[\uD83C-\uDBFF\uDC00-\uDFFF])/g, '');
 
     return cleaned.trim();
+}
+
+async function sendInfo(bot, chatId,) {
+
+    const attentionInfo = `info about attention`;
+
+
+    return bot.sendMessage(chatId, attentionInfo, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {text: '✅ Підтвердити', callback_data: 'data1c_confirm'},
+                    {text: '❌ Скасувати', callback_data: 'data1c_cancel'}
+                ],
+            ],
+        },
+    });
 }
 
 module.exports = {
