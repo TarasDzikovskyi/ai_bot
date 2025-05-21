@@ -143,7 +143,6 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
                 person['name'] = `${contact.first_name} ${contact.last_name}`;
                 person['phone_number'] = contact.phone_number;
 
-                db.set(person.id, person);
                 await bot.sendMessage(chatId, 'Дякуємо! Очікуйте підтвердження.')
 
                 const aiData = {
@@ -152,10 +151,6 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
                 }
 
                 return await connectTo1C(aiData);
-
-                // setTimeout(() => {
-                //     return bot.sendMessage(chatId, 'Особу підтверджено. Приємного користування. Натисніть в меню "Старт" для початку роботи.')
-                // }, 2000)
             }
         }
 
