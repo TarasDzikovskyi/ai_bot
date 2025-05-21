@@ -126,9 +126,10 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
         const contact = msg.contact;
 
         console.log(msg.text)
+        console.log(chatId)
 
         const db_user = db.get(chatId);
-        // console.log(db_user)
+        console.log(db_user)
 
         if (contact) {
             if (!contact.phone_number.includes('+')) contact.phone_number = `+${contact.phone_number}`;
