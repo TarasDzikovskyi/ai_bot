@@ -3,7 +3,7 @@ const {isLikelyOrder} = require('../utils/utils');
 const {handleAudio, handleText, handleCorrection} = require('../services/openai.service');
 const {ports, cities, allowedTextCommands} = require('../constants')
 const JSONdb = require('simple-json-db');
-const db = new JSONdb('people.json');
+
 const {connectTo1C} = require('../services/data1C.service')
 
 let option = {
@@ -128,6 +128,7 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
         console.log(msg.text)
         console.log(chatId)
 
+        const db = new JSONdb('people.json');
         const db_user = db.get(chatId);
         console.log(db_user)
 
@@ -151,6 +152,7 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
                     "user": person
                 }
 
+                // return
                 return await connectTo1C(aiData);
             }
         }
