@@ -163,14 +163,14 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap) {
 
         else if (query.data === 'data1c_confirm') {
             if(sessionState === 'awaiting_data1c'){
-                sessionState.delete(chatId);
+                sessionMap.delete(chatId);
                 await bot.sendMessage(chatId, 'Дякуємо, заявку сформовано.')
             }
         }
 
         else if (query.data === 'data1c_cancel') {
             if(sessionState === 'awaiting_data1c'){
-                sessionState.delete(chatId);
+                sessionMap.delete(chatId);
                 await bot.sendMessage(chatId, 'Добре, Заявку не буде сформовано.')
             }
         }
