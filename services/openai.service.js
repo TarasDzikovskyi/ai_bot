@@ -459,7 +459,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState) {
 
         if (sessionState === 'awaiting_gpt_audio') {
             await createAudio(bot, replyGPT, chatId);
-            return await sendInfo(bot, chatId);
+            return await sendInfo(bot, chatId, sessionState);
         } else {
             if (processingMsg) {
                 await bot.editMessageText(replyGPT, {
@@ -468,7 +468,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState) {
                     parse_mode: 'Markdown'
                 })
             } else await bot.sendMessage(chatId, replyGPT, {parse_mode: 'Markdown'})
-            return await sendInfo(bot, chatId);
+            return await sendInfo(bot, chatId, sessionState);
         }
 
 
@@ -542,6 +542,7 @@ async function createAudio(bot, text, chatId) {
     }
 }
 
+
 function cleanText(text) {
     let cleaned = text.replace(/\*/g, '');
 
@@ -550,10 +551,11 @@ function cleanText(text) {
     return cleaned.trim();
 }
 
-async function sendInfo(bot, chatId,) {
+
+async function sendInfo(bot, chatId, sessionState) {
+    sessionState.set(chatId, 'awaiting_data1c')
 
     const attentionInfo = `info about attention`;
-
 
     return bot.sendMessage(chatId, attentionInfo, {
         parse_mode: 'Markdown',
