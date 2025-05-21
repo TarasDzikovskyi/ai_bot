@@ -4,6 +4,7 @@ const {handleAudio, handleText, handleCorrection} = require('../services/openai.
 const {ports, cities, allowedTextCommands} = require('../constants')
 const JSONdb = require('simple-json-db');
 const db = new JSONdb('people.json');
+const {connectTo1C} = require('../services/data1C.service')
 
 let option = {
     "parse_mode": "Markdown",
@@ -145,9 +146,16 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
                 db.set(person.id, person);
                 await bot.sendMessage(chatId, 'Дякуємо! Очікуйте підтвердження.')
 
-                setTimeout(() => {
-                    return bot.sendMessage(chatId, 'Особу підтверджено. Приємного користування. Натисніть в меню "Старт" для початку роботи.')
-                }, 2000)
+                const aiData = {
+                    "type":"LCL_SetUser",
+                    "user": person
+                }
+
+                return await connectTo1C(aiData);
+
+                // setTimeout(() => {
+                //     return bot.sendMessage(chatId, 'Особу підтверджено. Приємного користування. Натисніть в меню "Старт" для початку роботи.')
+                // }, 2000)
             }
         }
 

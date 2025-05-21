@@ -425,8 +425,17 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState){
         return bot.sendMessage(chatId, 'Будь ласка зв`яжіться з вашим менеджером для актуального прорахунку' );
     }
 
+    const aiData = JSON.parse(reply);
 
-    const resultPrice = await connectTo1C(JSON.parse(reply));
+    const data = {
+        "type": 'LCL_Settlement',
+        "Origin": aiData.from.value,
+        "Destination": aiData.to.value,
+        "Volume": aiData.volume.value.toString(),
+        "Weight": aiData.weight.value.toString(),
+    }
+
+    const resultPrice = await connectTo1C(data);
     console.log('============RESULT FORM 1C===============')
     console.log(resultPrice)
     console.log('============RESULT FORM 1C===============')

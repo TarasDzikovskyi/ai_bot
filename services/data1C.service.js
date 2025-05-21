@@ -3,31 +3,24 @@ const https = require('https');
 const {data1C_auth, data1C_host} = require("../constants");
 
 
-const connectTo1C = async (aiData) => {
+const connectTo1C = async (data) => {
     try {
-        const data = {
-            "type": 'LCL_Settlement',
-            "Origin": aiData.from.value,
-            "Destination": aiData.to.value,
-            "Volume": aiData.volume.value.toString(),
-            "Weight": aiData.weight.value.toString(),
-        }
 
         const httpsAgent = new https.Agent({
             rejectUnauthorized: false
         });
 
-        const response = await axios.post('https://app.euro-forwarding.com/v8line/hs/ExchangeServices', data,
+        const response = await axios.post(data1C_host, data,
             {
                 // httpsAgent,
                 headers: {
-                    Authorization: `Basic ${Buffer.from('ExchangeServices:c8sMEeqLvHhWEZ').toString('base64')}`,
+                    Authorization: `Basic ${Buffer.from(data1C_auth).toString('base64')}`,
                     'Content-Type': 'application/json'
                 }
             })
 
 
-        // console.log({status: response.status, data: response.data})
+        console.log({status: response.status, data: response.data})
         return await response.data;
 
     } catch (e) {
