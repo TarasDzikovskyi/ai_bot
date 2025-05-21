@@ -11,8 +11,12 @@ module.exports.approveUser = async (req, res, next) => {
 
         if(!status || !access_allowed || !user) return res.status(400).json({message: 'Bad request'});
 
-        db.set(user.id, user);
-        await bot.sendMessage(user.id, 'Особу підтверджено. Приємного користування. Натисніть в меню "Старт" для початку роботи.')
+        if(access_allowed){
+            db.set(user.id, user);
+            await bot.sendMessage(user.id, 'Особу підтверджено. Приємного користування. Натисніть в меню "Старт" для початку роботи.')
+        } else {
+            await bot.sendMessage(user.id, 'Доступ заборонено.')
+        }
 
         res.status(200).json({message: 'ok'})
     } catch (e) {
