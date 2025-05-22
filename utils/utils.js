@@ -62,14 +62,14 @@ function normalizeTextWithFuzzyMatch(text) {
         if (!skipWords.includes(word.toLowerCase())) {
             // Пошук серед портів
             const [bestPortMatch, portScore] = fuzz.extract(word, portNames, { scorer: fuzz.ratio, returnObjects: false })[0];
-            if (portScore >= 70) {
+            if (portScore >= 75) {
                 const reg = new RegExp(word, 'gi');
                 normalizedText = normalizedText.replace(reg, bestPortMatch);
             }
 
             // Пошук серед міст
             const [bestCityMatch, cityScore] = fuzz.extract(word, cityNames, { scorer: fuzz.ratio, returnObjects: false })[0];
-            if (cityScore >= 70) {
+            if (cityScore >= 75) {
                 const reg = new RegExp(word, 'gi');
                 normalizedText = normalizedText.replace(reg, bestCityMatch);
             }

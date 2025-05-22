@@ -20,7 +20,7 @@ let option = {
 const normalizePort = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const normalizeCity = (str) => str.normalize("NFC").toLowerCase().replace(/[^\p{L}\d\s]/gu, '').toLowerCase();
 
-function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
+async function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
     bot.on('inline_query', (query) => {
         const userId = query.from.id;
         const userState = dialogStates.get(userId);
@@ -200,7 +200,7 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
 
 
             if (db_user) {
-                if(!allowedTextCommands.includes(msg.text) && !msg.voice && !msg.audio){
+                if(!state && !allowedTextCommands.includes(msg.text) && !msg.voice && !msg.audio){
                     if (isLikelyOrder(msg.text)) {
                         sessionMap.set(chatId, 'awaiting_gpt_input');
                         await handleText(bot, msg.text, chatId, sessionMap);
@@ -359,3 +359,5 @@ function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
 module.exports = {
     setupMessageHandler
 };
+
+

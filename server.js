@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { setupCommandHandlers } = require('./handlers/commandHandler');
+// const { setupCommandHandlers } = require('./handlers/commandHandler');
 const { setupMessageHandler } = require('./handlers/messageHandler');
 const { setupCallbackQueryHandler } = require('./handlers/callbackQueryHandler');
 const data1cRouter = require('./routes/data1C.router');
@@ -56,33 +56,32 @@ app.use(expressFileUpload());
 
 cron_job.start();
 
-const { bot, userState, dialogStates, sessionMap } = require('./config/bot.config');
+const { bot, userState, dialogStates, sessionMap, botMiddleware, startBot } = require('./config/bot.config');
 
-
-app.use((req, res, next) => {
-    req.bot = bot;
-    next();
-});
-
-
-// setupCommandHandlers(bot);
-
-setupMessageHandler(bot, userState, dialogStates, sessionMap);
-
-setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap);
-
+app.use(botMiddleware);
 
 app.use('/api/data1c', data1cRouter);
 
-console.log('🤖 Bot is running...');
 
-// Basic Express server setup
 app.get('/', (req, res) => {
     res.send('Telegram Bot Server is running');
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+const startApp = async () => {
+    try {
+        await startBot();
 
-// /api/data1c/user/aprove
+        // await setupMessageHandler(bot(), userState, dialogStates, sessionMap);
+        // await setupCallbackQueryHandler(bot(), userState, dialogStates, sessionMap);
+
+        app.listen(port, () => {
+            console.log(`Server running on port ${port}`);
+        });
+    } catch (error) {
+        console.error('Failed to start app:', error);
+        process.exit(1);
+    }
+};
+
+
+startApp()

@@ -1,20 +1,14 @@
 const { showItemsPage } = require('../utils/pagination');
 const {formatShippingInfo, data1CHandler} = require("../services/openai.service");
+const {connectTo1C} = require("../services/data1C.service");
 
 
 function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap) {
     bot.on('callback_query', async (query) => {
         const chatId = query?.message?.chat?.id || query?.from?.id;
-        console.log(chatId)
         const user = userState.get(chatId);
         const state = dialogStates.get(chatId);
         const sessionState = sessionMap.get(chatId);
-
-        console.log('======================================')
-        console.log(userState)
-        console.log('+++++++++++++++++++++++++++++++++++++++')
-        console.log(dialogStates)
-        console.log('======================================')
 
 
         if (query.data.startsWith('port:')) {
@@ -160,10 +154,16 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap) {
             // Do nothing, just answer the callback query
         }
 
-
         else if (query.data === 'data1c_confirm') {
             if(sessionState === 'awaiting_data1c'){
                 sessionMap.delete(chatId);
+                const data = {
+                    type: "",
+
+                }
+
+                // const response = await connectTo1C(data);
+
                 await bot.sendMessage(chatId, 'Дякуємо, заявку сформовано.')
             }
         }
