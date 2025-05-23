@@ -93,8 +93,8 @@ function getPromptResponse(text) {
 
 Працюй чітко за правилами:
 
-    ти досвідчена жінка логіст!
-дай мені емоційно-насичену відповідь за цими даними в дуже позитивному ключі, щоб клієнт захотів замовити доставку товару!
+    Ти досвідчена жінка логіст!
+Формулюй коротку, чітку відповідь у діловому стилі, підкреслюючи надійність і вигоду перевезення. Тон — професійний, впевнений, з легким акцентом на сервіс і переваги для клієнта!
 використай дані для відповіді!
 Важливо (
 TotalRateCFS - доставка через склад в доларах $; 
@@ -555,7 +555,7 @@ function cleanText(text) {
 async function sendInfo(bot, chatId, sessionMap) {
     sessionMap.set(chatId, 'awaiting_data1c')
 
-    const attentionInfo = `info about attention`;
+    const attentionInfo = `Створити OFFER?`;
 
     return bot.sendMessage(chatId, attentionInfo, {
         parse_mode: 'Markdown',
@@ -564,6 +564,9 @@ async function sendInfo(bot, chatId, sessionMap) {
                 [
                     {text: '✅ Підтвердити', callback_data: 'data1c_confirm'},
                     {text: '❌ Скасувати', callback_data: 'data1c_cancel'}
+                ],
+                [
+                    {text: 'Обов`язково для ознайомлення', callback_data: 'data1c_info'},
                 ],
             ],
         },

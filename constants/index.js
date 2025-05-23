@@ -209,5 +209,28 @@ module.exports = {
         { text: 'Чорноморськ', value: 'CHORNOMORKS' },
         { text: 'Чорноморськ', value: 'CHORNOMORSK' },
         { text: 'Шостка', value: 'SHOSTKA' }
-    ]
+    ],
+
+
+    data1c_info: `• Tariffs for goods with one cargo space more than 2000 kg or dimensions (length, width, height) more than 2.0 m - must be checked separately
+• Tariff for general, safe, stacked cargo.
+• Cashless payment only
+• Truck rates can be change from ETA date
+• Pick up by customer truck 15USD/bl
+• 5 days free of charges. Storage start from 6th day - EUR 3,5 x w/m x day - min. EUR 20 from 3rd week EUR 5 x w/m x day
+•for EXW rates may occurred additional charges
+•Separate truck 48hours free. Groupage truck 24hours free. Then 100USD/day till 3 days and 150USD/day from 3days
+•Rates for palletized cargo
+•Rates for 1 bl, 1 shipper and 1 cnee
+•Please note all our offers are subject to PSS or GRI without prior notice
+•We bill in UAH+3%  by NBU rate on date of invoice
+•For 1 export license within 5 items，if more than 5 items，plus additional charges
+•We do not provide export documents in case of purchase through our agent
+•For IMO STORAGE:
+•3days free, from 4day EUR 6EUR x w/m x day-min 70EUR
+•We are not responsible for the package(cargo)  integrity if the above conditions are not met.
+•In case of cancellation booking after cut of  - dead freight  will be apply for LCL / LTL 
+•Loading fee 5 usd per w/m will be apply in case self pick up 
+•Please ALWAYS pay attention to the validity of the offer before ETD, as the tariff may change according to the validity of the offer
+•The customs broker handles clearance and may decline if HS code/documents are unsuitable. Storage fees may apply.`
 }

@@ -1,6 +1,7 @@
 const { showItemsPage } = require('../utils/pagination');
 const {formatShippingInfo, data1CHandler} = require("../services/openai.service");
 const {connectTo1C} = require("../services/data1C.service");
+const constants = require("../constants");
 
 
 function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap) {
@@ -173,6 +174,10 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap) {
                 sessionMap.delete(chatId);
                 await bot.sendMessage(chatId, 'Добре, Заявку не буде сформовано.')
             }
+        }
+
+        else if (query.data === 'data1c_info') {
+            await bot.sendMessage(chatId, constants.data1c_info)
         }
 
         await bot.answerCallbackQuery(query.id);
