@@ -20,7 +20,7 @@ let option = {
 const normalizePort = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const normalizeCity = (str) => str.normalize("NFC").toLowerCase().replace(/[^\p{L}\d\s]/gu, '').toLowerCase();
 
-async function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
+async function setupMessageHandler(bot, userState, dialogStates, sessionMap, data1CMap) {
     bot.on('inline_query', (query) => {
         const userId = query.from.id;
         const userState = dialogStates.get(userId);
@@ -203,7 +203,7 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
                 if(!state && !allowedTextCommands.includes(msg.text) && !msg.voice && !msg.audio){
                     if (isLikelyOrder(msg.text)) {
                         sessionMap.set(chatId, 'awaiting_gpt_input');
-                        await handleText(bot, msg.text, chatId, sessionMap);
+                        await handleText(bot, msg.text, chatId, sessionMap, data1CMap);
                     } else {
                         await bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
                     }
@@ -211,7 +211,7 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap) {
 
                 if (msg.voice || msg.audio) {
                     sessionMap.set(chatId, 'awaiting_gpt_audio');
-                    await handleAudio(bot, msg, chatId, userState, sessionMap);
+                    await handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap);
                 }
 
                 if (user?.isEditing) {

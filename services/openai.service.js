@@ -110,7 +110,7 @@ Weight - вказано в кг
 }
 
 
-async function handleAudio(bot, msg, chatId, userState, sessionMap) {
+async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap) {
     const sessionState = sessionMap.get(chatId);
     sessionMap.delete(chatId);
 
@@ -205,7 +205,7 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
             // Відправляємо результат користувачеві
             const data = formatShippingInfo(reply);
             const message = await bot.sendMessage(chatId, data, {parse_mode: 'Markdown'});
-            await data1CHandler(reply, chatId, bot, message, sessionState, sessionMap);
+            await data1CHandler(reply, chatId, bot, message, sessionState, sessionMap, data1CMap);
         }
     } catch (error) {
         console.error('❌ Error in audio processing:', error);
@@ -217,7 +217,7 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
 }
 
 
-async function handleText(bot, text, chatId, sessionMap) {
+async function handleText(bot, text, chatId, sessionMap, data1CMap) {
     const sessionState = sessionMap.get(chatId);
     sessionMap.delete(chatId);
 
@@ -250,7 +250,7 @@ ${(!obj.volume.value || !obj.volume.confidence) ? 'Поле "об`єм" неко
     } else {
         const data = formatShippingInfo(reply);
         const processingMsg = await bot.sendMessage(chatId, data, {parse_mode: 'Markdown'});
-        await data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap);
+        await data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap);
     }
 
 }
@@ -411,7 +411,7 @@ function formatShippingResult(data) {
 }
 
 
-async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap) {
+async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap) {
     const {from, to, volume, weight} = JSON.parse(reply);
 
     if (!from.value || !to.value || !volume.value || !weight.value) {
@@ -424,12 +424,15 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
 
     const aiData = JSON.parse(reply);
 
+    data1CMap.set(chatId, aiData);
+
     const data = {
         "type": 'LCL_Settlement',
         "Origin": aiData.from.value,
         "Destination": aiData.to.value,
         "Volume": aiData.volume.value.toString(),
         "Weight": aiData.weight.value.toString(),
+        "userId": chatId
     }
 
     const resultPrice = await connectTo1C(data);

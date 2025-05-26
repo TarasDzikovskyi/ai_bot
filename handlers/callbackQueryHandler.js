@@ -4,12 +4,13 @@ const {connectTo1C} = require("../services/data1C.service");
 const constants = require("../constants");
 
 
-function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap) {
+function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, data1CMap) {
     bot.on('callback_query', async (query) => {
         const chatId = query?.message?.chat?.id || query?.from?.id;
         const user = userState.get(chatId);
         const state = dialogStates.get(chatId);
         const sessionState = sessionMap.get(chatId);
+        const data1CState = data1CMap.get(chatId);
 
 
         if (query.data.startsWith('port:')) {
@@ -84,7 +85,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap) {
 
             const data = formatShippingInfo(reply);
             const processingMsg = await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
-            await data1CHandler(reply, chatId, bot, processingMsg);
+            await data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap);
             userState.delete(chatId); // Очистити стан
         }
 
@@ -115,7 +116,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap) {
                 }
 
                 const reply = JSON.stringify(data);
-                await data1CHandler(reply, chatId, bot);
+                await data1CHandler(reply, chatId, bot, null, sessionState, sessionMap, data1CMap);
 
                 dialogStates.delete(chatId); // Очистити стан
             }
@@ -158,12 +159,21 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap) {
         else if (query.data === 'data1c_confirm') {
             if(sessionState === 'awaiting_data1c'){
                 sessionMap.delete(chatId);
-                const data = {
-                    type: "",
 
+                console.log(data1CState)
+
+                const data = {
+                    type: "Create_Report",
+                    "Origin": data1CState.from.value,
+                    "Destination": data1CState.to.value,
+                    "Volume": data1CState.volume.value.toString(),
+                    "Weight": data1CState.weight.value.toString(),
+                    userId: chatId
                 }
 
-                // const response = await connectTo1C(data);
+                const response = await connectTo1C(data);
+
+                console.log(response);
 
                 await bot.sendMessage(chatId, 'Дякуємо, заявку сформовано.')
             }

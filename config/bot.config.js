@@ -15,6 +15,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const userState = new Map();
 const dialogStates = new Map();
 const sessionMap = new Map();
+const data1CMap = new Map();
 
 
 const startBot = async () => {
@@ -39,8 +40,8 @@ const startBot = async () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
 
-        await setupMessageHandler(bot, userState, dialogStates, sessionMap);
-        await setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap);
+        await setupMessageHandler(bot, userState, dialogStates, sessionMap, data1CMap);
+        await setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, data1CMap);
 
 
         bot.on('polling_error', async (e) => {
@@ -129,5 +130,6 @@ module.exports = {
     sessionMap,
     botMiddleware,
     startBot,
+    data1CMap,
     restartBot,
 };
