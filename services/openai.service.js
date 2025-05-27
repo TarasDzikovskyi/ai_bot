@@ -179,6 +179,7 @@ async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap) {
 
         if (!parsed.from.confidence || !parsed.to.confidence || !parsed.weight.confidence || !parsed.volume.confidence
             || !parsed.from.value || !parsed.to.value || !parsed.weight.value || !parsed.volume.value) {
+
             userState.set(chatId, {
                 originalText: cleanedText,
                 originalData: parsed,

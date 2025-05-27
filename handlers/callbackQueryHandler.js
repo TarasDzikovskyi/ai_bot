@@ -55,6 +55,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
         }
 
         else if (query.data === 'edit_yes') {
+            sessionState.set(chatId, 'correction')
             await bot.sendMessage(chatId, 'Будь ласка, надішліть нове аудіо або текст із уточненнями.');
         }
 

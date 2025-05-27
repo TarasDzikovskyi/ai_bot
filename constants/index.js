@@ -7,7 +7,7 @@ module.exports = {
 
     allowedCorsOrigins: [''],
 
-    skipWords: ['дай', 'будь', 'будьласка', 'ласка', 'нехай', 'тисячі'],
+    skipWords: ['дай', 'будь', 'будьласка', 'ласка', 'нехай', 'тисячі', 'три'],
 
     allowedTextCommands: [
         '/start',
