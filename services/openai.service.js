@@ -450,6 +450,10 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         result.TotalRateCFS = Rate.TotalRateCFS;
         result.TotalRatePD = Rate.TotalRatePD;
 
+        result.Origin = getUkrainianName(ports, result.Origin)
+        result.Destination = getUkrainianName(ports, result.Destination)
+
+
         const prompt = getPromptResponse(JSON.stringify(result));
 
         const gptResponse = await openai.chat.completions.create({
@@ -576,6 +580,11 @@ async function sendInfo(bot, chatId, sessionMap) {
         },
     });
 }
+
+const getUkrainianName = (array, englishName) => {
+    const found = array.find(item => item.value.toUpperCase() === englishName.toUpperCase());
+    return found ? found.text : englishName;
+};
 
 module.exports = {
     getPrompt,
