@@ -177,7 +177,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
                 console.log(response);
                 console.log('===================CREATE REPORT 1C===================');
 
-                if (response.status === 200) {
+                if (response.status === 'ok') {
                     await bot.sendMessage(chatId, 'Дякуємо, заявку сформовано.')
                 } else {
                     await bot.sendMessage(chatId, 'Помилка при формуванні заявки');
