@@ -14,103 +14,183 @@ const text_model = 'gpt-3.5-turbo';
 const audio_model = 'whisper-1';
 
 
+// function getPrompt(text) {
+//     console.log('=================================TEXT PROMPT==================================');
+//     console.log(text);
+//     console.log('=================================TEXT PROMPT==================================');
+//
+//     const portList = ports.map(port => `"${port.text}"`).join(', ');
+//     const cityList = cities.map(city => `"${city.text}"`).join(', ');
+//
+//     return `
+// Ти — досвідчений логістичний асистент. Твоя задача — проаналізувати текст замовлення на перевезення вантажу (наприклад, отриманий з голосового повідомлення) та витягнути з нього ключову інформацію про маршрут і характеристики вантажу.
+//
+// 📦 Працюй чітко за правилами:
+//
+// 🔹 **"from"** — порт відправлення
+// 🔹 **"to"** — місто призначення
+// 🔹 **"weight"** — вага у **кг**
+// 🔹 **"volume"** — обʼєм у **м³**
+//
+// ---
+//
+// 🔍 **Правила перевірки:**
+//
+// 1. Усі порти (from) мають бути **тільки з цього списку**:
+// [${portList}]
+// 2. Усі міста (to) мають бути **тільки з цього списку**:
+// [${cityList}]
+// 3. Якщо порт або місто не входить до відповідного списку — **поверни "value": null, "confidence": false**
+// 4. Якщо назва схожа, але написана з помилкою (наприклад, "Дзіндао" замість "Циндао") — спробуй знайти найближчий варіант зі списку й поверни його з '"confidence": true'. Якщо не впевнений — '"value": null', '"confidence": false'.
+//
+// ---
+//
+// 🧠 **Витягни результат у форматі JSON:**
+//
+// \`\`\`json
+// {
+//   "from": {
+//     "value": "Назва порту УКРАЇНСЬКОЮ зі списку або null",
+//     "confidence": true | false
+//   },
+//   "to": {
+//     "value": "Назва міста УКРАЇНСЬКОЮ зі списку або null",
+//     "confidence": true | false
+//   },
+//   "weight": {
+//     "value": число у кг або null,
+//     "confidence": true | false
+//   },
+//   "volume": {
+//     "value": число у м³ або null,
+//     "confidence": true | false
+//   },
+//   "language": {
+//     "value": визначення мови, якою є написаний текст замовлення,
+//     "confidence": true | false
+//   },
+// }
+// \`\`\`
+//
+// ---
+//
+// ⚠️ **Уточнення**:
+//
+// - Якщо вказано "тона" — переведи у **кг** (1 тонна = 1000 кг) ВИЗНАЧАЙ ПРАВИЛЬНО
+// - Якщо вказано "літр" — не враховуй (поверни volume: null)
+// - Якщо вказано "м³", "куб", "кубічний метр" — враховуй як обʼєм
+// - Якщо не впевнений у значенні — краще повертай 'null' + 'confidence: false'
+// - Не додавай пояснень, коментарів, тексту — **тільки валідний JSON**
+//
+// ---
+//
+// Ось текст замовлення:
+// """${text}"""
+// `;
+// }
+
+
+
 function getPrompt(text) {
     console.log('=================================TEXT PROMPT==================================');
     console.log(text);
     console.log('=================================TEXT PROMPT==================================');
 
-    const portList = ports.map(port => `"${port.text}"`).join(', ');
-    const cityList = cities.map(city => `"${city.text}"`).join(', ');
+    const portList = ports.map(port => `"${port.value}"`).join(', ');
+    const cityList = cities.map(city => `"${city.value}"`).join(', ');
 
     return `
-Ти — досвідчений логістичний асистент. Твоя задача — проаналізувати текст замовлення на перевезення вантажу (наприклад, отриманий з голосового повідомлення) та витягнути з нього ключову інформацію про маршрут і характеристики вантажу.
+You are a skilled logistics assistant. Your task is to analyze a cargo transportation order text (e.g., transcribed from a voice message) and extract key route and cargo information.
 
-📦 Працюй чітко за правилами:
+Follow the rules precisely:
 
-🔹 **"from"** — порт відправлення
-🔹 **"to"** — місто призначення
-🔹 **"weight"** — вага у **кг**
-🔹 **"volume"** — обʼєм у **м³**
+🔹 **"from"** — departure port  
+🔹 **"to"** — destination city  
+🔹 **"weight"** — weight in **kg**  
+🔹 **"volume"** — volume in **m³**
 
 ---
 
-🔍 **Правила перевірки:**
+**Validation rules:**
 
-1. Усі порти (from) мають бути **тільки з цього списку**:
+1. All ports ("from") must be **only from this list**:  
 [${portList}]
-2. Усі міста (to) мають бути **тільки з цього списку**:
+2. All cities ("to") must be **only from this list**:  
 [${cityList}]
-3. Якщо порт або місто не входить до відповідного списку — **поверни "value": null, "confidence": false**
-4. Якщо назва схожа, але написана з помилкою (наприклад, "Дзіндао" замість "Циндао") — спробуй знайти найближчий варіант зі списку й поверни його з '"confidence": true'. Якщо не впевнений — '"value": null', '"confidence": false'.
+3. If the port or city is not in the corresponding list — **return "value": null, "confidence": false**
+4. If the name is similar but misspelled (e.g., "Dzindao" instead of "Qingdao") — try to find the closest match from the list and return it with '"confidence": true'. If unsure — return '"value": null', '"confidence": false'.
 
 ---
 
-🧠 **Витягни результат у форматі JSON:**
+**Return the result in the following JSON format:**  
 
 \`\`\`json
 {
   "from": {
-    "value": "Назва порту УКРАЇНСЬКОЮ зі списку або null",
+    "value": "Port name IN ENGLISH from the list or null",
     "confidence": true | false
   },
   "to": {
-    "value": "Назва міста УКРАЇНСЬКОЮ зі списку або null",
+    "value": "City name IN ENGLISH from the list or null",
     "confidence": true | false
   },
   "weight": {
-    "value": число у кг або null,
+    "value": number in kg or null,
     "confidence": true | false
   },
   "volume": {
-    "value": число у м³ або null,
+    "value": number in m³ or null,
     "confidence": true | false
   },
   "language": {
-    "value": визначення мови, якою є написаний текст замовлення,
+    "value": detected language of the order text in format (pl-PL, uk-UA, en-US, etc.),
     "confidence": true | false
-  },
+  }
 }
 \`\`\`
 
 ---
 
-⚠️ **Уточнення**:
+⚠️ **Additional notes:**
 
-- Якщо вказано "тона" — переведи у **кг** (1 тонна = 1000 кг) ВИЗНАЧАЙ ПРАВИЛЬНО
-- Якщо вказано "літр" — не враховуй (поверни volume: null)
-- Якщо вказано "м³", "куб", "кубічний метр" — враховуй як обʼєм
-- Якщо не впевнений у значенні — краще повертай 'null' + 'confidence: false'
-- Не додавай пояснень, коментарів, тексту — **тільки валідний JSON**
+- If "tons" are mentioned — convert to **kg** (1 ton = 1000 kg) — BE PRECISE  
+- If "liters" are mentioned — ignore them (return volume: null)  
+- If "m³", "cubic", "cubic meter" are mentioned — treat as volume  
+- If you are not confident in a value — return 'null' and 'confidence: false'  
+- Do **not** add explanations, comments, or extra text — **return valid JSON only**
 
 ---
 
-Ось текст замовлення:
+Here is the order text:  
 """${text}"""
 `;
 }
 
-function getPromptResponse(text) {
+
+function getPromptResponse(text, language) {
 
     const prompt = `
-    Ось текст з даними:
+Here is the data:
 """${text}"""
 
-Працюй чітко за правилами:
+Follow these exact instructions:
 
-    ти досвідчена жінка логіст!
-дай мені лаконічну емоційно-насичену відповідь за цими даними в досить позитивному ключі, щоб клієнт захотів замовити доставку товару!
-використай дані для відповіді!
-Важливо (
-TotalRateCFS - доставка через склад в доларах $; 
-TotalRatePD - доставка по ПД в доларах $;
-Volume - вказано в м³;
-Weight - вказано в кг
-) 
+You are an experienced logistics assistant!
+Give me a concise, emotionally engaging response based on this data, with a positive and enthusiastic tone — one that would make the client want to place an order!
+Use the provided data in your reply.
 
-Суму потрібно виділити жирним текстом однією "*", а не "**"
+Important notes:
+- TotalRateCFS — delivery via warehouse, in US dollars ($)
+- TotalRatePD — direct delivery (PD), in US dollars ($)
+- Volume — measured in cubic meters (m³)
+- Weight — measured in kilograms (kg)
+
+Highlight the final cost with a single "*" (not "**").
+
+!The reply MUST be in this language: ${language}! This is very important.
 `
 
-    return prompt
+    return prompt;
 }
 
 
@@ -132,7 +212,7 @@ async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap) {
         const transcription = await openai.audio.transcriptions.create({
             file: fs.createReadStream(localFilePath),
             model: audio_model,
-            language: "uk"
+            // language: "uk"
         });
 
         if (!transcription.text) {
@@ -145,9 +225,9 @@ async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap) {
         // Форматування тексту
         const cleanedText = normalizeTextWithFuzzyMatch(text);
 
-        if (!isLikelyOrder(cleanedText)) {
-            return bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
-        }
+        // if (!isLikelyOrder(cleanedText)) {
+        //     return bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
+        // }
 
         // Використовуємо GPT для витягування інформації з тексту
         const prompt = getPrompt(cleanedText);
@@ -175,11 +255,9 @@ async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap) {
             return;
         }
 
-
         console.log('===========================PARSED AUDIO===========================')
         console.log(parsed)
         console.log('===========================PARSED AUDIO===========================')
-
 
         if (!parsed.from.confidence || !parsed.to.confidence || !parsed.weight.confidence || !parsed.volume.confidence
             || !parsed.from.value || !parsed.to.value || !parsed.weight.value || !parsed.volume.value) {
@@ -210,6 +288,7 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
             // Відправляємо результат користувачеві
             const data = formatShippingInfo(reply);
             const message = await bot.sendMessage(chatId, data, {parse_mode: 'Markdown'});
+
             await data1CHandler(reply, chatId, bot, message, sessionState, sessionMap, data1CMap);
         }
     } catch (error) {
@@ -235,11 +314,13 @@ async function handleText(bot, text, chatId, sessionMap, data1CMap) {
         messages: [{role: 'user', content: prompt}]
     });
 
-    // console.log(gptResponse)
-
     const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
 
     const cleanedParsed = normalizeFromTo(JSON.parse(replyGPT));
+
+    console.log('===========================PARSED TEXT===========================')
+    console.log(cleanedParsed)
+    console.log('===========================PARSED TEXT===========================')
     const reply = JSON.stringify(cleanedParsed);
     // console.log(reply)
 
@@ -417,7 +498,11 @@ function formatShippingResult(data) {
 
 
 async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap) {
-    const {from, to, volume, weight} = JSON.parse(reply);
+    const {from, to, volume, weight, language} = JSON.parse(reply);
+
+    console.log('==================== USER LANGUAGE =============================')
+    console.log(language)
+    console.log('==================== USER LANGUAGE =============================')
 
     if (!from.value || !to.value || !volume.value || !weight.value) {
         return bot.sendMessage(chatId, 'Проблема з прорахунком. Немає всіх даних!');
@@ -454,8 +539,11 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         result.TotalRateCFS = Rate.TotalRateCFS;
         result.TotalRatePD = Rate.TotalRatePD;
 
-        result.Origin = getUkrainianName(ports, result.Origin)
-        result.Destination = getUkrainianName(ports, result.Destination)
+
+        if(language.value === 'uk-UA') {
+            result.Origin = getUkrainianName(ports, result.Origin)
+            result.Destination = getUkrainianName(ports, result.Destination)
+        }
 
 
         const prompt = getPromptResponse(JSON.stringify(result));
@@ -470,7 +558,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         console.log(replyGPT)
 
         if (sessionState === 'awaiting_gpt_audio') {
-            await createAudio(bot, replyGPT, chatId);
+            await createAudio(bot, replyGPT, chatId, language);
             return await sendInfo(bot, chatId, sessionMap);
         } else {
             if (processingMsg) {
@@ -496,7 +584,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
 }
 
 
-async function createAudio(bot, text, chatId) {
+async function createAudio(bot, text, chatId, language) {
     try {
 
         const API_KEY = 'AIzaSyDYsyq_eRkG3ghAdaZ4IiWlBHvNpvReTA8';
@@ -513,8 +601,8 @@ async function createAudio(bot, text, chatId) {
                 text: cleanText(text)
             },
             voice: {
-                languageCode: "pl-PL",
-                name: "pl-PL-Chirp3-HD-Achernar"
+                languageCode: language.confidence ? language.value : "uk-UA",
+                name: language.confidence ? language.value : "uk-UA"+"-Chirp3-HD-Enceladus"
             }
         };
 

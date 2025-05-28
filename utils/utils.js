@@ -47,7 +47,7 @@ function isLikelyOrder(text) {
 }
 
 
-function normalizeTextWithFuzzyMatch(text) {
+function normalizeTextWithFuzzyMatch2(text) {
     let normalizedText = text;
 
     // const portNames = ports.map(p => p.text);
@@ -77,6 +77,63 @@ function normalizeTextWithFuzzyMatch(text) {
     }
 
     return normalizedText;
+}
+
+function normalizeTextWithFuzzyMatch(text) {
+    let normalizedText = text;
+
+    const allVariants = [];
+
+    ports.forEach(port => {
+        if (port.text) {
+            allVariants.push({ searchText: port.text, value: port.value, type: 'port' });
+        }
+        if (port.value && port.value !== port.text) {
+            allVariants.push({ searchText: port.value, value: port.value, type: 'port' });
+        }
+    });
+
+    cities.forEach(city => {
+        if (city.text) {
+            allVariants.push({ searchText: city.text, value: city.value, type: 'city' });
+        }
+        if (city.value && city.value !== city.text) {
+            allVariants.push({ searchText: city.value, value: city.value, type: 'city' });
+        }
+    });
+
+    const words = text.split(/[\s,.;()!?]+/);
+
+    for (const word of words) {
+        if (!skipWords.includes(word.toLowerCase()) && word.length > 3) {
+            const searchTexts = allVariants.map(v => v.searchText);
+
+            const result = fuzz.extract(word, searchTexts, { scorer: fuzz.ratio, returnObjects: false });
+
+            if (result.length > 0) {
+                const [bestMatch, score] = result[0];
+
+                if (score >= 75) {
+                    const matchedVariant = allVariants.find(v => v.searchText === bestMatch);
+
+                    console.log(matchedVariant)
+                    if (matchedVariant) {
+                        // const reg = new RegExp(`\\b${escapeRegExp(word)}\\b`, 'gi');
+                        const reg = new RegExp(word, 'gi');
+                        normalizedText = normalizedText.replace(reg, matchedVariant.value);
+                    }
+                }
+            }
+        }
+    }
+
+    return normalizedText;
+}
+
+
+// Допоміжна функція для екранування спецсимволів у регулярних виразах
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 
