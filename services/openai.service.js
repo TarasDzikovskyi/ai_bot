@@ -1,7 +1,7 @@
 const {OpenAI} = require('openai');
 const fs = require('fs');
 const {downloadFile, normalizeTextWithFuzzyMatch, normalizeFromTo, isLikelyOrder, getValidityPeriod} = require('../utils/utils');
-const {ports, cities} = require('../constants')
+const {ports, cities, supportedLanguages} = require('../constants')
 const {connectTo1C} = require('./data1C.service');
 const {post} = require("axios");
 const {v4: uuidv4} = require('uuid');
@@ -176,7 +176,7 @@ Here is the data:
 Follow these exact instructions:
 
 You are an experienced logistics assistant!
-Give me a concise, emotionally engaging response based on this data, with a positive and enthusiastic tone — one that would make the client want to place an order!
+Give me a concise, emotionally engaging response based on this data, with a very positive and enthusiastic tone — one that would make the client want to place an order!
 Use the provided data in your reply.
 
 Important notes:
@@ -591,6 +591,18 @@ async function createAudio(bot, text, chatId, language) {
         const API_KEY = 'AIzaSyDYsyq_eRkG3ghAdaZ4IiWlBHvNpvReTA8';
         const url = `https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${API_KEY}`;
 
+        const isSupportedLanguage = supportedLanguages.includes(language.value);
+
+        const voice = isSupportedLanguage
+            ? {
+                languageCode: language.value,
+                name: `${language.value}-Chirp3-HD-Enceladus`
+            }
+            : {
+                languageCode: "en-US",
+                name: "en-US-Chirp3-HD-Enceladus"
+            };
+
         const data = {
             audioConfig: {
                 audioEncoding: "LINEAR16",
@@ -601,10 +613,7 @@ async function createAudio(bot, text, chatId, language) {
             input: {
                 text: cleanText(text)
             },
-            voice: {
-                languageCode: language.confidence ? language.value : "uk-UA",
-                name: language.confidence ? language.value+"-Chirp3-HD-Enceladus" : "uk-UA-Chirp3-HD-Enceladus"
-            }
+            voice
         };
 
         const response = await post(url, data);

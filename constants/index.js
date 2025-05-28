@@ -232,5 +232,9 @@ module.exports = {
 •In case of cancellation booking after cut of  - dead freight  will be apply for LCL / LTL 
 •Loading fee 5 usd per w/m will be apply in case self pick up 
 •Please ALWAYS pay attention to the validity of the offer before ETD, as the tariff may change according to the validity of the offer
-•The customs broker handles clearance and may decline if HS code/documents are unsuitable. Storage fees may apply.`
+•The customs broker handles clearance and may decline if HS code/documents are unsuitable. Storage fees may apply.`,
+
+
+    supportedLanguages: ['ar-EG', 'en-US', 'fr-FR' ,'id-ID', 'ja-JP', 'pt-BR', 'nl-NL', 'th-TH' ,'vi-VN', 'uk-UA',
+        'en-IN', 'hi-IN', 'ta-IN' , 'de-DE', 'es-US', 'hi-IN', 'it-IT', 'ko-KR' , 'pl-PL', 'tr-TR', 'ro-RO', 'bn-BD', 'mr-IN' , 'te-IN']
 }
