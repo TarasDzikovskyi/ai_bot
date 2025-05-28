@@ -168,6 +168,7 @@ Here is the order text:
 
 
 function getPromptResponse(text, language) {
+     supportedLanguages.includes(language) || (language = 'en-US')
 
     const prompt = `
 Here is the data:
@@ -546,6 +547,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
             result.Destination = getUkrainianName(ports, result.Destination)
         }
 
+        // language.value === 'uk-UA'
 
         const prompt = getPromptResponse(JSON.stringify(result), language.value);
 
