@@ -185,13 +185,13 @@ Important notes:
 - Volume — measured in cubic meters (m³)
 - Weight — measured in kilograms (kg)
 
-Highlight the final cost with a single "*" (not "**").
-
 !The reply MUST be in this language: ${language}! This is very important.
 `
 
     return prompt;
 }
+
+// Highlight the final cost with a single "*" (not "**").
 
 
 async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap) {
