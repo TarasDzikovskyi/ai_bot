@@ -372,8 +372,10 @@ async function handlePhoto(bot, msg, chatId) {
 }
 
 
-async function handleCorrection(bot, msg, chatId, user, userState) {
+async function handleCorrection(bot, msg, chatId, user, userState, sessionState) {
     let newText = '';
+    if(sessionState !== 'correction') return
+
 
     if (msg.text) {
         newText = msg.text;

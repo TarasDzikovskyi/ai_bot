@@ -216,15 +216,22 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                     await handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap);
                 }
 
-                if (user?.isEditing) {
+                console.log('=======================================USER===========================================')
+                console.log(user)
+                console.log('=======================================USER===========================================')
+
+
+                if (user.isEditing) {
                     if (msg.text || msg.voice || msg.audio) {
-                        await handleCorrection(bot, msg, chatId, user, userState);
+                        await handleCorrection(bot, msg, chatId, user, userState, sessionState);
                         // Don't delete userState here as it's needed for the confirmation step
                         return;
                     } else {
                         await bot.sendMessage(chatId, 'Надішліль текст або аудіо з уточненням.');
                         return;
                     }
+
+
                 }
 
                 // if (sessionState === 'awaiting_gpt_input') {
