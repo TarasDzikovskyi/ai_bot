@@ -168,7 +168,7 @@ Here is the order text:
 
 
 function getPromptResponse(text, language) {
-     supportedLanguages.includes(language) || (language = 'en-US')
+    if(!supportedLanguages.includes(language)) language = 'en-US'
 
     const prompt = `
 Here is the data:
