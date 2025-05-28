@@ -546,7 +546,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         }
 
 
-        const prompt = getPromptResponse(JSON.stringify(result));
+        const prompt = getPromptResponse(JSON.stringify(result), language.value);
 
         const gptResponse = await openai.chat.completions.create({
             model: text_model,
@@ -602,7 +602,7 @@ async function createAudio(bot, text, chatId, language) {
             },
             voice: {
                 languageCode: language.confidence ? language.value : "uk-UA",
-                name: language.confidence ? language.value : "uk-UA"+"-Chirp3-HD-Enceladus"
+                name: language.confidence ? language.value+"-Chirp3-HD-Enceladus" : "uk-UA-Chirp3-HD-Enceladus"
             }
         };
 
