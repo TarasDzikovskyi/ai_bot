@@ -378,6 +378,7 @@ async function handleCorrection(bot, msg, chatId, user, userState, sessionMap) {
     if(sessionState !== 'correction') return
 
     sessionMap.delete(chatId);
+    userState.delete(chatId);
 
     if (msg.text) {
         newText = msg.text;
