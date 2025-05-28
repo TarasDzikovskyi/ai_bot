@@ -236,5 +236,5 @@ module.exports = {
 
 
     supportedLanguages: ['ar-EG', 'en-US', 'fr-FR' ,'id-ID', 'ja-JP', 'pt-BR', 'nl-NL', 'th-TH' ,'vi-VN', 'uk-UA',
-        'en-IN', 'hi-IN', 'ta-IN' , 'de-DE', 'es-US', 'hi-IN', 'it-IT', 'ko-KR' , 'pl-PL', 'tr-TR', 'ro-RO', 'bn-BD', 'mr-IN' , 'te-IN']
+        'en-IN', 'hi-IN', 'ta-IN' , 'de-DE', 'es-US', 'es-ES', 'hi-IN', 'it-IT', 'ko-KR' , 'pl-PL', 'tr-TR', 'ro-RO', 'bn-BD', 'mr-IN' , 'te-IN']
 }
