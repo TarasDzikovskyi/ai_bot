@@ -186,6 +186,7 @@ Important notes:
 - Weight — measured in kilograms (kg)
 
 !The reply MUST be in this language: ${language}! This is very important.
+Max 3-4 sentences.
 `
 
     return prompt;
