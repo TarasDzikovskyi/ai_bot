@@ -64,7 +64,11 @@ function getPrompt(text) {
   "volume": {
     "value": число у м³ або null,
     "confidence": true | false
-  }
+  },
+  "language": {
+    "value": визначення мови, якою є написаний текст замовлення,
+    "confidence": true | false
+  },
 }
 \`\`\`
 
@@ -509,8 +513,8 @@ async function createAudio(bot, text, chatId) {
                 text: cleanText(text)
             },
             voice: {
-                languageCode: "uk-UA",
-                name: "uk-UA-Chirp3-HD-Achernar"
+                languageCode: "pl-PL",
+                name: "pl-PL-Chirp3-HD-Achernar"
             }
         };
 
