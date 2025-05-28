@@ -9,8 +9,8 @@ const {v4: uuidv4} = require('uuid');
 
 // Initialize OpenAI client
 const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
-const text_model = 'gpt-3.5-turbo';
-// const text_model = 'gpt-4-turbo';
+// const text_model = 'gpt-3.5-turbo';
+const text_model = 'gpt-4-turbo';
 const audio_model = 'whisper-1';
 
 
