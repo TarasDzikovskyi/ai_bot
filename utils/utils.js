@@ -125,10 +125,40 @@ function normalizeFromTo(input) {
 }
 
 
+function getValidityPeriod() {
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.getMonth() + 1; // getMonth() повертає 0-11
+    const year = today.getFullYear();
+
+    let startDate, endDate;
+
+    if (day <= 14) {
+        // Якщо день від 1 до 14, валідність до 14 числа
+        startDate = new Date(year, month - 1, day);
+        endDate = new Date(year, month - 1, 14);
+    } else {
+        // Якщо день від 15 до кінця місяця, валідність до останнього дня місяця
+        startDate = new Date(year, month - 1, day);
+        endDate = new Date(year, month, 0); // 0-й день наступного місяця = останній день поточного
+    }
+
+    // Форматування дат у вигляді dd/mm
+    const formatDate = (date) => {
+        const d = date.getDate().toString().padStart(2, '0');
+        const m = (date.getMonth() + 1).toString().padStart(2, '0');
+        return `${d}/${m}`;
+    };
+
+    return `${formatDate(endDate)}`;
+}
+
+
 module.exports = {
     downloadFile,
     chunkArray,
     isLikelyOrder,
     normalizeTextWithFuzzyMatch,
-    normalizeFromTo
+    normalizeFromTo,
+    getValidityPeriod,
 };

@@ -1,6 +1,6 @@
 const {OpenAI} = require('openai');
 const fs = require('fs');
-const {downloadFile, normalizeTextWithFuzzyMatch, normalizeFromTo, isLikelyOrder} = require('../utils/utils');
+const {downloadFile, normalizeTextWithFuzzyMatch, normalizeFromTo, isLikelyOrder, getValidityPeriod} = require('../utils/utils');
 const {ports, cities} = require('../constants')
 const {connectTo1C} = require('./data1C.service');
 const {post} = require("axios");
@@ -563,7 +563,8 @@ function cleanText(text) {
 async function sendInfo(bot, chatId, sessionMap) {
     sessionMap.set(chatId, 'awaiting_data1c')
 
-    const attentionInfo = `Створити OFFER?`;
+    const validityDate = getValidityPeriod();
+    const attentionInfo = `Створити OFFER? (ціна актуальна до ${validityDate})`;
 
     return bot.sendMessage(chatId, attentionInfo, {
         parse_mode: 'Markdown',
@@ -585,6 +586,8 @@ const getUkrainianName = (array, englishName) => {
     const found = array.find(item => item.value.toUpperCase() === englishName.toUpperCase());
     return found ? found.text : englishName;
 };
+
+
 
 module.exports = {
     getPrompt,
