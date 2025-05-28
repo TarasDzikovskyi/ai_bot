@@ -177,7 +177,7 @@ Here is the data:
 Follow these exact instructions:
 
 You are an experienced logistics assistant!
-Give me a concise, emotionally engaging response based on this data, with a very positive and enthusiastic tone — one that would make the client want to place an order!
+Give me a concise, emotionally engaging response based on this data, with a very very positive and enthusiastic tone — one that would make the client want to place an order!
 Use the provided data in your reply.
 
 Important notes:
@@ -187,7 +187,7 @@ Important notes:
 - Weight — measured in kilograms (kg)
 
 !The reply MUST be in this language: ${language}! This is very important.
-Max 3-4 sentences.
+Max 2-4 sentences.
 `
 
     return prompt;
