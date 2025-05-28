@@ -55,12 +55,13 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
         }
 
         else if (query.data === 'edit_yes') {
-            sessionState.set(chatId, 'correction')
+            sessionMap.set(chatId, 'correction')
             await bot.sendMessage(chatId, 'Будь ласка, надішліть нове аудіо або текст із уточненнями.');
         }
 
         else if (query.data === 'edit_no') {
             userState.delete(chatId);
+            sessionMap.delete(chatId)
             await bot.sendMessage(chatId, 'Добре, обробку скасовано.');
         }
 

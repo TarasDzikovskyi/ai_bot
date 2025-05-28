@@ -223,7 +223,7 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
 
                 if (user && user.isEditing) {
                     if (msg.text || msg.voice || msg.audio) {
-                        await handleCorrection(bot, msg, chatId, user, userState, sessionState);
+                        await handleCorrection(bot, msg, chatId, user, userState, sessionMap);
                         // Don't delete userState here as it's needed for the confirmation step
                         return;
                     } else {
