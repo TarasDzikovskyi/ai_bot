@@ -595,7 +595,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
 }
 
 
-async function createAudio(bot, text, chatId, language) {
+async function createAudio2(bot, text, chatId, language) {
     try {
 
         const API_KEY = 'AIzaSyDYsyq_eRkG3ghAdaZ4IiWlBHvNpvReTA8';
@@ -662,7 +662,7 @@ async function createAudio(bot, text, chatId, language) {
     }
 }
 
-async function main(bot, text, chatId, language) {
+async function createAudio(bot, text, chatId, language) {
     const isSupportedLanguage = supportedLanguages.includes(language.value);
 
     let languageCode = 'en-US';
