@@ -269,7 +269,8 @@ async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap) {
                 originalText: cleanedText,
                 originalData: parsed,
                 isEditing: true,
-                sourceType: 'audio'
+                sourceType: 'audio',
+                datetime: Date.now()
             });
 
             const errorMessage = `Не вдалося отримати всі дані з аудіо. 
@@ -553,7 +554,6 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
             result.Destination = getUkrainianName(ports, result.Destination)
         }
 
-        // language.value === 'uk-UA'
 
         const prompt = getPromptResponse(JSON.stringify(result), language.value);
 

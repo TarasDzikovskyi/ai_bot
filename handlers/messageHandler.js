@@ -200,15 +200,9 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
 
 
             if (db_user) {
-                console.log(user)
                 if(sessionState !== 'correction' && !state && !allowedTextCommands.includes(msg.text) && !msg.voice && !msg.audio){
-
-                    // if (isLikelyOrder(msg.text)) {
-                        sessionMap.set(chatId, 'awaiting_gpt_input');
-                        await handleText(bot, msg.text, chatId, sessionMap, data1CMap);
-                    // } else {
-                    //     await bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
-                    // }
+                    sessionMap.set(chatId, 'awaiting_gpt_input');
+                    await handleText(bot, msg.text, chatId, sessionMap, data1CMap);
                 }
 
                 if (sessionState !== 'correction' && (msg.voice || msg.audio)) {
@@ -217,7 +211,14 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                 }
 
                 console.log('=======================================USER===========================================')
-                console.log(user)
+                if(user && user.datetime) {
+                    const oneMinute = 60 * 1000;
+                    const isOlderThanOneMinute = Date.now() - user.timestamp > oneMinute;
+                    if (isOlderThanOneMinute) {
+                        console.log(user)
+                        userState.delete(chatId);
+                    }
+                }
                 console.log('=======================================USER===========================================')
 
 
