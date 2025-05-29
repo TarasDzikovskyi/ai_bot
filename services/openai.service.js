@@ -1,10 +1,12 @@
 const {OpenAI} = require('openai');
 const fs = require('fs');
-const {downloadFile, normalizeTextWithFuzzyMatch, normalizeFromTo, isLikelyOrder, getValidityPeriod} = require('../utils/utils');
+const {downloadFile, normalizeTextWithFuzzyMatch, normalizeFromTo, isLikelyOrder, getValidityPeriod, convertToWav, chunkArray} = require('../utils/utils');
 const {ports, cities, supportedLanguages} = require('../constants')
 const {connectTo1C} = require('./data1C.service');
 const {post} = require("axios");
 const {v4: uuidv4} = require('uuid');
+const {GoogleGenAI} = require("@google/genai");
+const mime = require("mime-types");
 
 
 // Initialize OpenAI client
@@ -659,6 +661,82 @@ async function createAudio(bot, text, chatId, language) {
         console.log(e)
     }
 }
+
+async function main(bot, text, chatId, language) {
+    const isSupportedLanguage = supportedLanguages.includes(language.value);
+
+    let languageCode = 'en-US';
+    if (isSupportedLanguage) languageCode = language.value;
+
+
+    const API_KEY = 'AIzaSyAtZ5ka2JDSFqJDoRct5C5loJ9QClYmw7w';
+
+    const ai = new GoogleGenAI({
+        apiKey: API_KEY,
+    });
+    const config = {
+        temperature: 1,
+        responseModalities: [
+            'audio',
+        ],
+        speechConfig: {
+            voiceConfig: {
+                languageCode,
+                prebuiltVoiceConfig: {
+                    voiceName: 'Leda',
+                }
+            }
+        },
+    };
+    const model = 'gemini-2.5-flash-preview-tts';
+    const contents = [
+        {
+            role: 'user',
+            parts: [
+                {text},
+            ],
+        },
+    ];
+
+    const response = await ai.models.generateContentStream({
+        model,
+        config,
+        contents,
+    });
+    let fileIndex = 0;
+    for await (const chunk of response) {
+        if (!chunk.candidates || !chunk.candidates[0].content || !chunk.candidates[0].content.parts) {
+            continue;
+        }
+        if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
+            const fileName = `ENTER_FILE_NAME_${fileIndex++}`;
+            const inlineData = chunk.candidates[0].content.parts[0].inlineData;
+            // let fileExtension = mime.getExtension(inlineData.mimeType || '');
+            let fileExtension = mime.extension(inlineData.mimeType || ''); // <--- ЗМІНА ТУТ
+
+            let buffer = Buffer.from(inlineData.data || '', 'base64');
+            if (!fileExtension) {
+                fileExtension = 'wav';
+                buffer = convertToWav(inlineData.data || '', inlineData.mimeType || '');
+            }
+
+            try {
+                // Directly send the audio buffer to Telegram
+                await bot.sendVoice(chatId, { source: buffer, filename: `audio.${fileExtension}` });
+                console.log(`Audio sent to Telegram bot.`);
+            } catch (telegramError) {
+                console.error(`Error sending audio to Telegram:`, telegramError);
+            }
+
+
+            // saveBinaryFile(`${fileName}.${fileExtension}`, buffer);
+        }
+        else {
+            console.log(chunk.text);
+        }
+    }
+}
+
 
 
 function cleanText(text) {
