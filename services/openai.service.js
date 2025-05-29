@@ -10,7 +10,8 @@ const {v4: uuidv4} = require('uuid');
 // Initialize OpenAI client
 const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 // const text_model = 'gpt-3.5-turbo';
-const text_model = 'gpt-4-turbo';
+// const text_model = 'gpt-4-turbo';
+const text_model = 'gpt-4o';
 const audio_model = 'whisper-1';
 
 
@@ -557,7 +558,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         const prompt = getPromptResponse(JSON.stringify(result), language.value);
 
         const gptResponse = await openai.chat.completions.create({
-            model: text_model,
+            model: 'gpt-3.5-turbo',
             messages: [{role: 'user', content: prompt}]
         });
 
