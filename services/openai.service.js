@@ -177,7 +177,7 @@ Here is the data:
 
 Follow these exact instructions:
 
-You are an experienced logistics assistant!
+You are an experienced female logistics assistant!
 Give me a concise, emotionally engaging response based on this data, with a very very positive and enthusiastic tone — one that would make the client want to place an order!
 Use the provided data in your reply.
 
@@ -558,7 +558,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         const prompt = getPromptResponse(JSON.stringify(result), language.value);
 
         const gptResponse = await openai.chat.completions.create({
-            model: 'gpt-3.5-turbo',
+            model: text_model,
             messages: [{role: 'user', content: prompt}]
         });
 
@@ -604,11 +604,11 @@ async function createAudio(bot, text, chatId, language) {
         const voice = isSupportedLanguage
             ? {
                 languageCode: language.value,
-                name: `${language.value}-Chirp3-HD-Enceladus`
+                name: `${language.value}-Chirp3-HD-Leda`
             }
             : {
                 languageCode: "en-US",
-                name: "en-US-Chirp3-HD-Enceladus"
+                name: "en-US-Chirp3-HD-Leda"
             };
 
         const data = {
