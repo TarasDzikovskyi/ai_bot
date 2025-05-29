@@ -1,6 +1,6 @@
 const {OpenAI} = require('openai');
 const fs = require('fs');
-const {downloadFile, normalizeTextWithFuzzyMatch, normalizeFromTo, isLikelyOrder, getValidityPeriod, convertToWav, chunkArray} = require('../utils/utils');
+const {downloadFile, normalizeTextWithFuzzyMatch, normalizeFromTo, getValidityPeriod, convertToWav, saveBinaryFile} = require('../utils/utils');
 const {ports, cities, supportedLanguages} = require('../constants')
 const {connectTo1C} = require('./data1C.service');
 const {post} = require("axios");
@@ -709,7 +709,7 @@ async function createAudio(bot, text, chatId, language) {
             continue;
         }
         if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
-            const fileName = `ENTER_FILE_NAME_${fileIndex++}`;
+            // const fileName = `ENTER_FILE_NAME_${fileIndex++}`;
             const inlineData = chunk.candidates[0].content.parts[0].inlineData;
             // let fileExtension = mime.getExtension(inlineData.mimeType || '');
             let fileExtension = mime.extension(inlineData.mimeType || ''); // <--- ЗМІНА ТУТ
@@ -719,17 +719,19 @@ async function createAudio(bot, text, chatId, language) {
                 fileExtension = 'wav';
                 buffer = convertToWav(inlineData.data || '', inlineData.mimeType || '');
             }
+            const fileName = `voice_${uuidv4()}.wav`;
+            const filePath = `./${fileName}`;
+            fs.writeFileSync(filePath, buffer);
 
             try {
                 // Directly send the audio buffer to Telegram
-                await bot.sendVoice(chatId, { source: buffer, filename: `audio.${fileExtension}` });
+                await bot.sendVoice(chatId, fs.createReadStream(filePath));
                 console.log(`Audio sent to Telegram bot.`);
             } catch (telegramError) {
                 console.error(`Error sending audio to Telegram:`, telegramError);
             }
 
-
-            // saveBinaryFile(`${fileName}.${fileExtension}`, buffer);
+            fs.unlinkSync(filePath);
         }
         else {
             console.log(chunk.text);

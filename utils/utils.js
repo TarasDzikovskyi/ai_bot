@@ -293,5 +293,6 @@ module.exports = {
     normalizeTextWithFuzzyMatch,
     normalizeFromTo,
     getValidityPeriod,
-    convertToWav
+    convertToWav,
+    saveBinaryFile
 };
