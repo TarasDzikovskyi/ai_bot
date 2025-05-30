@@ -407,12 +407,12 @@ async function handleCorrection(bot, msg, chatId, user, userState, sessionMap) {
     console.log(cleanedText);
 
     const combinedPrompt = `
-Є початковий об'єкт замовлення з деякими некоректними даними (confidence: false) або (value: null):
+There is an initial order object with some incorrect data (confidence: false) or (value: null):
 """${JSON.stringify(user.originalData)}"""
 
-Решта полів (confidence: true) повинні **залишитись, які були**
+The remaining fields (confidence: true) should **remain as they were**
 
-Користувач уточнив наступне:
+The user specified the following:
 """${cleanedText}"""
 `;
 
@@ -741,7 +741,8 @@ async function createAudio(bot, text, chatId, language) {
 
 
 
-function cleanText(text) {
+f
+unction cleanText(text) {
     let cleaned = text.replace(/\*/g, '');
 
     cleaned = cleaned.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|[\uD83C-\uDBFF\uDC00-\uDFFF])/g, '');
