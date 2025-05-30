@@ -510,9 +510,13 @@ function formatShippingResult(data) {
 
 async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap) {
     const {from, to, volume, weight, language} = JSON.parse(reply);
+    let lng
+
+    if(!language) lng = {value: 'uk-UA', confidence: true}
+    else lng = language
 
     console.log('==================== USER LANGUAGE =============================')
-    console.log(language)
+    console.log(lng)
     console.log('==================== USER LANGUAGE =============================')
 
     if (!from.value || !to.value || !volume.value || !weight.value) {
@@ -551,13 +555,13 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         result.TotalRatePD = Rate.TotalRatePD;
 
 
-        if(language.value === 'uk-UA') {
+        if(lng.value === 'uk-UA') {
             result.Origin = getUkrainianName(ports, result.Origin)
             result.Destination = getUkrainianName(ports, result.Destination)
         }
 
 
-        const prompt = getPromptResponse(JSON.stringify(result), language.value);
+        const prompt = getPromptResponse(JSON.stringify(result), lng.value);
 
         const gptResponse = await openai.chat.completions.create({
             model: text_model,
@@ -569,7 +573,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         console.log(replyGPT)
 
         if (sessionState === 'awaiting_gpt_audio') {
-            await createAudio(bot, replyGPT, chatId, language);
+            await createAudio(bot, replyGPT, chatId, lng);
             return await sendInfo(bot, chatId, sessionMap);
         } else {
             if (processingMsg) {
