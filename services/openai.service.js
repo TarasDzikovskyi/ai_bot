@@ -745,8 +745,7 @@ async function createAudio(bot, text, chatId, language) {
 
 
 
-f
-unction cleanText(text) {
+function cleanText(text) {
     let cleaned = text.replace(/\*/g, '');
 
     cleaned = cleaned.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|[\uD83C-\uDBFF\uDC00-\uDFFF])/g, '');
