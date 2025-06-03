@@ -200,7 +200,7 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
 
 
             if (db_user) {
-                if(sessionState !== 'correction' && !state && !allowedTextCommands.includes(msg.text) && !msg.voice && !msg.audio){
+                if(sessionState !== 'correction' && sessionState !== 'data1c_contact' && !state && !allowedTextCommands.includes(msg.text) && !msg.voice && !msg.audio){
                     sessionMap.set(chatId, 'awaiting_gpt_input');
                     await handleText(bot, msg.text, chatId, sessionMap, data1CMap);
                 }
@@ -233,15 +233,30 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                     }
                 }
 
-                // if (sessionState === 'awaiting_gpt_input') {
-                //     sessionMap.delete(chatId);
-                //
-                //     if (isLikelyOrder(msg.text)) {
-                //         await handleText(bot, msg.text, chatId);
-                //     } else {
-                //         await bot.sendMessage(chatId, 'Це повідомлення не схоже на запит щодо перевезення вантажу. Будь ласка, вкажіть деталі доставки.');
-                //     }
-                // }
+                if (sessionState === 'data1c_contact') {
+                    const data1CState = data1CMap.get(chatId);
+                    sessionMap.delete(chatId);
+
+                    if(!data1CState) return
+
+                    console.log(data1CState)
+
+                    const data = {
+                        type: "Send_Contact",
+                        
+                        ...data1CState,
+                        user: chatId,
+                        contact: msg.text
+                    }
+
+                    const response = await connectTo1C(data);
+
+                    console.log('===================CONTACT 1C===================');
+                    console.log(response);
+                    console.log('===================CONTACT 1C===================');
+
+                    return bot.sendMessage(chatId, 'Дані відправлено. Дякуємо!')
+                }
 
                 // if (sessionState === 'awaiting_gpt_audio') {
                 //     sessionMap.delete(chatId);

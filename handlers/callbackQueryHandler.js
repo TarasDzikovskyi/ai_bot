@@ -173,6 +173,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
                     userId: chatId
                 }
 
+                data1CMap.delete(chatId);
                 const response = await connectTo1C(data);
 
                 console.log('===================CREATE REPORT 1C===================');
@@ -180,7 +181,14 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
                 console.log('===================CREATE REPORT 1C===================');
 
                 if (response.status === 'ok') {
+                    const data = {
+                        "doc_id": response.doc_id,
+                        "doc_num": response.doc_num,
+                    }
+                    data1CMap.set(chatId, data);
+                    sessionMap.set(chatId, 'data1c_contact');
                     await bot.sendMessage(chatId, 'Дякуємо, заявку сформовано.')
+                    await bot.sendMessage(chatId, 'Надішліть в наступному повідомленні контактні дані відправника.')
                 } else {
                     await bot.sendMessage(chatId, 'Помилка при формуванні заявки');
                 }
