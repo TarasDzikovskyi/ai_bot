@@ -478,6 +478,9 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         result.TotalRateCFS = Rate.TotalRateCFS;
         result.TotalRatePD = Rate.TotalRatePD;
 
+        if(!Rate.PDDeliveryOk)
+            result.TotalRatePD = 'please contact the manager'
+
 
         if(lng.value === 'uk-UA') {
             result.Origin = getUkrainianName(ports, result.Origin)
