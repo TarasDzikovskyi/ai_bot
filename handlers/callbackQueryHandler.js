@@ -12,6 +12,8 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
         const sessionState = sessionMap.get(chatId);
         const data1CState = data1CMap.get(chatId);
 
+        if(sessionState === 'data1c_contact') sessionMap.delete(chatId);
+
 
         if (query.data.startsWith('port:')) {
             const port = query.data.split(':')[1];

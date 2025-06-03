@@ -163,6 +163,8 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                 if (!db_user) {
                     return bot.sendMessage(chatId, `Поділіться, будь ласка, контактом для підтвердження особи`, option)
                 } else {
+                    if(sessionState === 'data1c_contact') sessionMap.delete(chatId);
+
                     return bot.sendMessage(chatId, 'Привіт, я AI сейлз🤖 Boxline Ukraine. Буду радий надати найкращу ціну згідно Вашого запиту😃. Надішліть текст📝 або аудіо🎤 повідомлення у довільній формі з параметрами вантажу для прорахунку🚢. Вкажіть обов`язково звідки відправка⚓️ і куди доставка🚚 вага об`єм, тариф дається завжди на умовах фоб.', {
                         reply_markup: {
                             keyboard: [
@@ -181,6 +183,8 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                 if (!db_user) {
                     return bot.sendMessage(chatId, `Поділіться, будь ласка, контактом для підтвердження особи`, option)
                 } else {
+                    if(sessionState === 'data1c_contact') sessionMap.delete(chatId);
+
                     return bot.sendMessage(chatId, 'Натисніть кнопку для пошуку:', {
                         reply_markup: {
                             inline_keyboard: [[
@@ -206,6 +210,8 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                 }
 
                 if (sessionState !== 'correction' && (msg.voice || msg.audio)) {
+                    if(sessionState === 'data1c_contact') sessionMap.delete(chatId);
+
                     sessionMap.set(chatId, 'awaiting_gpt_audio');
                     await handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap);
                 }
@@ -258,27 +264,10 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                     return bot.sendMessage(chatId, 'Дані відправлено. Дякуємо!')
                 }
 
-                // if (sessionState === 'awaiting_gpt_audio') {
-                //     sessionMap.delete(chatId);
-                //     if (msg.voice || msg.audio) {
-                //         await handleAudio(bot, msg, chatId, userState);
-                //     }
-                //     // else await bot.sendMessage(chatId, 'Це не аудіо!')
-                // }
-
-                // if (msg.text === '🔊 Надіслати аудіо') {
-                //     sessionMap.set(chatId, 'awaiting_gpt_audio');
-                //     await bot.sendMessage(chatId, 'Надішліть голосове повідомлення з інформацією про замовлення.');
-                //     return;
-                // }
-
-                // if (msg.text === '📝 Надіслати текст') {
-                //     sessionMap.set(chatId, 'awaiting_gpt_input');
-                //     await bot.sendMessage(chatId, 'Будь ласка, введіть текст замовлення на прорахунок вантажу.');
-                //     return;
-                // }
 
                 if (msg.text === '📦 Прорахувати вантаж') {
+                    if(sessionState === 'data1c_contact') sessionMap.delete(chatId);
+
                     dialogStates.set(chatId, {step: 'awaitingPort', portPage: 0});
                     await showItemsPage(bot, chatId, 0, 'departure', 'port');
 
@@ -338,11 +327,15 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                 }
 
                 if (msg.text === 'ℹ️ Допомога') {
+                    if(sessionState === 'data1c_contact') sessionMap.delete(chatId);
+
                     await bot.sendMessage(chatId, 'Надішли текст або голосове повідомлення, а бот обробить вашу інформацію і прорахує суму доставки. Якщо аудіо дані не точні — ти зможеш їх уточнити.');
                     return;
                 }
 
                 if (msg.text === '🏙️ Список міст') {
+                    if(sessionState === 'data1c_contact') sessionMap.delete(chatId);
+
                     await showItemsPage(bot, chatId, 0, 'list', 'city');
 
                     return bot.sendMessage(chatId, 'Або натисни кнопку для пошуку:', {
@@ -358,6 +351,8 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                 }
 
                 if (msg.text === '🚢 Список портів') {
+                    if(sessionState === 'data1c_contact') sessionMap.delete(chatId);
+
                     await showItemsPage(bot, chatId, 0, 'list', 'port');
 
                     return bot.sendMessage(chatId, 'Або натисніть кнопку для пошуку:', {
