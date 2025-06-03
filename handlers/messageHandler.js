@@ -249,10 +249,10 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
 
                     const data = {
                         type: "Send_Contact",
-                        
-                        ...data1CState,
+                        doc_id: data1CState.doc_id,
+                        doc_num: data1CState.doc_num,
                         user: chatId,
-                        contact: msg.text
+                        contact_msg: msg.text
                     }
 
                     const response = await connectTo1C(data);
