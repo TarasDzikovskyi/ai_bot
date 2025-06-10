@@ -426,8 +426,8 @@ function formatShippingResult(data) {
 
 
 *Розрахунок:*
-🚚 *Доставка через склад:* ${data.Rate.TotalRateCFS} $
-🚪 *Доставка по ПД:* ${data.Rate.TotalRatePD} $
+🚚 *Доставка через склад (${data.StorageCFS}):* ${data.TotalRateCFS} $
+🚪 *Доставка по ПД:* ${data.TotalRatePD} $
 `;
 }
 
@@ -477,6 +477,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
 
         result.TotalRateCFS = Rate.TotalRateCFS;
         result.TotalRatePD = Rate.TotalRatePD;
+        result.StorageCFS = Rate?.StorageCFS || '';
 
         if(!Rate.PDDeliveryOk)
             result.TotalRatePD = 'please contact the manager'
@@ -487,29 +488,30 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
             result.Destination = getUkrainianName(ports, result.Destination)
         }
 
-
-        const prompt = getPromptResponse(JSON.stringify(result), lng.value);
-
-        const gptResponse = await openai.chat.completions.create({
-            model: text_model,
-            messages: [{role: 'user', content: prompt}]
-        });
-
-        const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
-
-        console.log(replyGPT)
-
         if (sessionState === 'awaiting_gpt_audio') {
+            const prompt = getPromptResponse(JSON.stringify(result), lng.value);
+
+            const gptResponse = await openai.chat.completions.create({
+                model: text_model,
+                messages: [{role: 'user', content: prompt}]
+            });
+
+            const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
+
+            console.log(replyGPT)
+
             await createAudio(bot, replyGPT, chatId, lng);
             return await sendInfo(bot, chatId, sessionMap);
         } else {
+            const formatedText = formatShippingResult(result)
+
             if (processingMsg) {
-                await bot.editMessageText(replyGPT, {
+                await bot.editMessageText(formatedText, {
                     chat_id: chatId,
                     message_id: processingMsg.message_id,
                     parse_mode: 'Markdown'
                 })
-            } else await bot.sendMessage(chatId, replyGPT, {parse_mode: 'Markdown'})
+            } else await bot.sendMessage(chatId, formatedText, {parse_mode: 'Markdown'})
             return await sendInfo(bot, chatId, sessionMap);
         }
 
@@ -522,74 +524,6 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
     } else {
 
 
-    }
-}
-
-
-async function createAudio2(bot, text, chatId, language) {
-    try {
-
-        const API_KEY = 'AIzaSyDYsyq_eRkG3ghAdaZ4IiWlBHvNpvReTA8';
-        const url = `https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=${API_KEY}`;
-
-        const isSupportedLanguage = supportedLanguages.includes(language.value);
-
-        const voice = isSupportedLanguage
-            ? {
-                languageCode: language.value,
-                name: `${language.value}-Chirp3-HD-Leda`
-            }
-            : {
-                languageCode: "en-US",
-                name: "en-US-Chirp3-HD-Leda"
-            };
-
-        const data = {
-            audioConfig: {
-                audioEncoding: "LINEAR16",
-                effectsProfileId: ["small-bluetooth-speaker-class-device"],
-                pitch: 0,
-                speakingRate: 1
-            },
-            input: {
-                text: cleanText(text)
-            },
-            voice
-        };
-
-        const response = await post(url, data);
-        const audioContent = response.data.audioContent;
-
-        if (!audioContent) throw new Error("Немає аудіо у відповіді.");
-
-        // Зберігаємо тимчасовий файл
-        const fileName = `voice_${uuidv4()}.wav`;
-        const filePath = `./${fileName}`;
-        fs.writeFileSync(filePath, Buffer.from(audioContent, 'base64'));
-
-        // Надсилаємо як голосове повідомлення
-        await bot.sendVoice(chatId, fs.createReadStream(filePath));
-
-        // Видаляємо файл після надсилання
-        fs.unlinkSync(filePath);
-        console.log('Голосове повідомлення надіслано і файл видалено.');
-
-        // const speechResponse = await openai.audio.speech.create({
-        //     model: 'tts-1',
-        //     voice: 'shimmer', // інші голоси: alloy, echo, fable, onyx, shimmer
-        //     input: text,
-        // });
-        //
-        // const buffer = Buffer.from(await speechResponse.arrayBuffer());
-        // const filePath = `./voice_${chatId}.mp3`;
-        // fs.writeFileSync(filePath, buffer);
-        //
-        // await bot.sendVoice(chatId, fs.createReadStream(filePath));
-        //
-        // fs.unlinkSync(filePath);
-    } catch (e) {
-        await bot.sendMessage(chatId, 'Проблема з прорахунком. Спробуйте пізніше!',);
-        console.log(e)
     }
 }
 
