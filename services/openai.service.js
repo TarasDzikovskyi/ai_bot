@@ -600,7 +600,7 @@ async function createAudio(bot, text, chatId, language) {
     if (isSupportedLanguage) languageCode = language.value;
 
 
-    const API_KEY = 'AIzaSyAtZ5ka2JDSFqJDoRct5C5loJ9QClYmw7w';
+    const API_KEY = process.env.GEMINI_API_KEY;
 
     const ai = new GoogleGenAI({
         apiKey: API_KEY,
