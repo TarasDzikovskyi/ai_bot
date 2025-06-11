@@ -18,7 +18,7 @@ This is a Telegram bot that converts audio messages and audio files to text usin
    ```
 6. Start the bot:
    ```bash
-   node bot.js
+   node server.js
    ```
 
 ## Usage
