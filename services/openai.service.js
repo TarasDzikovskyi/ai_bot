@@ -92,10 +92,12 @@ Here is the order text:
 }
 
 
-function getPromptResponse(text, language) {
+function getPromptResponse(text, language, isOnlyStorage, storage) {
     if(!supportedLanguages.includes(language)) language = 'en-US';
 
-
+    if(isOnlyStorage) {
+        text = text + ' Please note, we can only deliver to the warehouse in Ukraine ' + storage
+    }
 
     const prompt = `
 Here is the data:
@@ -427,7 +429,12 @@ function formatShippingResult(data) {
 
 *Розрахунок:*
 🚚 *Доставка через склад (${data.StorageCFS}):* ${data.TotalRateCFS} $
-🚪 *Доставка по ПД:* ${data.TotalRatePD} $
+🚪 *Доставка по ПД:* ${data.TotalRatePD === 'please contact the manager' ? 'будь ласка, зв`яжіться з менеджером' : `${data.TotalRatePD}$`} 
+${
+        data.OnlyStorageCFS 
+        ? '\n\n\nЗверніть увагу! Доставка відбудеться тільки до складу, вказаному у призначенні. За детальною інформацією зверніться до менеджера.' 
+        : ''
+    }
 `;
 }
 
@@ -478,10 +485,16 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         result.TotalRateCFS = Rate.TotalRateCFS;
         result.TotalRatePD = Rate.TotalRatePD;
         result.StorageCFS = Rate?.StorageCFS || '';
+        result.OnlyStorageCFS = Rate?.OnlyStorageCFS;
 
         if(!Rate.PDDeliveryOk)
             result.TotalRatePD = 'please contact the manager'
 
+
+        const storage = Rate?.StorageCFS === 'Львів' ? 'LVIV' : 'KYIV';
+        if(Rate.OnlyStorageCFS){
+            result.Destination = storage;
+        }
 
         if(lng.value === 'uk-UA') {
             result.Origin = getUkrainianName(ports, result.Origin)
@@ -489,7 +502,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         }
 
         if (sessionState === 'awaiting_gpt_audio') {
-            const prompt = getPromptResponse(JSON.stringify(result), lng.value);
+            const prompt = getPromptResponse(JSON.stringify(result), lng.value, Rate.OnlyStorageCFS, storage);
 
             const gptResponse = await openai.chat.completions.create({
                 model: text_model,
