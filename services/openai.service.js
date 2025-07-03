@@ -253,9 +253,10 @@ async function handleText(bot, text, chatId, sessionMap, data1CMap) {
     console.log('===========================PARSED TEXT===========================')
     console.log(cleanedParsed)
     console.log('===========================PARSED TEXT===========================')
+    if(!cleanedParsed.language.confidence) cleanedParsed.language.confidence = true;
+
     const reply = JSON.stringify(cleanedParsed);
     // console.log(reply)
-
 
     if (reply.includes('null') || reply.includes('false')) {
         const obj = JSON.parse(reply);
@@ -429,13 +430,12 @@ function formatShippingResult(data) {
 
 *Розрахунок:*
 🚚 *Доставка через склад (${data.StorageCFS}):* ${data.TotalRateCFS} $
-🚪 *Доставка по ПД:* ${data.TotalRatePD === 'please contact the manager' ? 'будь ласка, зв`яжіться з менеджером' : `${data.TotalRatePD}$`} 
-${
-        data.OnlyStorageCFS 
+🚪 *Доставка по ПД:* ${data.TotalRatePD === 'please contact the manager' ? 'будь ласка, зв\'яжіться з менеджером' : `${data.TotalRatePD}$`} 
+${data.OnlyStorageCFS 
         ? '\n\n\nЗверніть увагу! Доставка відбудеться тільки до складу, вказаному у призначенні. За детальною інформацією зверніться до менеджера.' 
         : ''
     }
-`;
+`
 }
 
 
