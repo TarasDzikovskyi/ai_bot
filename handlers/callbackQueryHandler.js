@@ -210,6 +210,33 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
             await bot.sendMessage(chatId, constants.data1c_info)
         }
 
+        else if (query.data.startsWith('booking_')) {
+            const parts = query.data.split('_');
+            const docId = parts[1];
+
+            const data = {
+                type: "Approve_Booking",
+                userId: chatId,
+                doc_id: docId,
+            }
+
+            const response = await connectTo1C(data);
+
+            console.log('===================BOOKING 1C===================');
+            console.log(response);
+            console.log('===================BOOKING 1C===================');
+
+
+            await bot.editMessageReplyMarkup({
+                inline_keyboard: [
+                    [{text: '✅ Розміщено', callback_data: 'used'}]
+                ]
+            }, {
+                chat_id: chatId,
+                message_id: query.message.message_id
+            });
+        }
+
         await bot.answerCallbackQuery(query.id);
     });
 }

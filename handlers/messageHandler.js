@@ -261,7 +261,15 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                     console.log(response);
                     console.log('===================CONTACT 1C===================');
 
-                    return bot.sendMessage(chatId, 'Дані відправлено. Дякуємо!')
+                    data1CMap.delete(chatId);
+
+                    return bot.sendMessage(chatId, 'Дані відправлено. Дякуємо!', {
+                        reply_markup: {
+                            inline_keyboard: [[
+                                {text: 'Розмістити booking?', callback_data: `booking_${data1CState.doc_id}`},
+                            ]]
+                        }
+                    });
                 }
 
 
