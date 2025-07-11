@@ -1,7 +1,8 @@
 const {CronJob} = require('cron');
 const path = require("node:path");
 const fs = require("node:fs/promises");
-
+const {log4js} = require("../utils/logger");
+const logger = log4js.getLogger('ai-bot');
 
 const cron_job = CronJob.from({
     cronTime: '0 0 */1 * * *', // перевірка кожної години
@@ -35,15 +36,15 @@ const checkedOldAudio = async () => {
                     const filePath = path.join(dirPath, file);
                     // console.log(filePath)
                     await fs.unlink(filePath);
-                    console.log(`✅ Видалено старий файл: ${file}`);
+                    logger.info(`✅ Видалено старий файл: ${file}`);
                     deletedCount++;
                 }
             }
         }
 
-        console.log(`🗑️  Видалено: ${deletedCount}`);
+        logger.info(`🗑️  Видалено: ${deletedCount}`);
     } catch (e) {
-        console.error('❌ Помилка під час перевірки старих аудіо:', e);
+        logger.error('❌ Помилка під час перевірки старих аудіо:', e);
     }
 };
 

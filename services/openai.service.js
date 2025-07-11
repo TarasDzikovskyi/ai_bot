@@ -7,7 +7,8 @@ const {post} = require("axios");
 const {v4: uuidv4} = require('uuid');
 const {GoogleGenAI} = require("@google/genai");
 const mime = require("mime-types");
-
+const {log4js} = require("../utils/logger");
+const logger = log4js.getLogger('ai-bot');
 
 // Initialize OpenAI client
 const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
@@ -17,9 +18,9 @@ const text_model = 'gpt-4o';
 const audio_model = 'whisper-1';
 
 function getPrompt(text) {
-    console.log('=================================TEXT PROMPT==================================');
-    console.log(text);
-    console.log('=================================TEXT PROMPT==================================');
+    logger.info('=================================TEXT PROMPT==================================');
+    logger.info(text);
+    logger.info('=================================TEXT PROMPT==================================');
 
     const portList = ports.map(port => `"${port.value}"`).join(', ');
     const cityList = cities.map(city => `"${city.value}"`).join(', ');
@@ -151,7 +152,7 @@ async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap) {
         }
 
         const text = transcription.text;
-        console.log(text)
+        logger.info(text)
 
         // Форматування тексту
         const cleanedText = normalizeTextWithFuzzyMatch(text);
@@ -178,7 +179,7 @@ async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap) {
         try {
             parsed = JSON.parse(reply);
         } catch (err) {
-            console.error('❌ Не вдалося розпарсити JSON:', err);
+            logger.error('❌ Не вдалося розпарсити JSON:', err);
             await bot.editMessageText('Виникла помилка при обробці відповіді GPT.', {
                 chat_id: chatId,
                 message_id: processingMsg.message_id
@@ -186,9 +187,9 @@ async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap) {
             return;
         }
 
-        console.log('===========================PARSED AUDIO===========================')
-        console.log(parsed)
-        console.log('===========================PARSED AUDIO===========================')
+        logger.info('===========================PARSED AUDIO===========================')
+        logger.info(parsed)
+        logger.info('===========================PARSED AUDIO===========================')
 
         if (!parsed.from.confidence || !parsed.to.confidence || !parsed.weight.confidence || !parsed.volume.confidence
             || !parsed.from.value || !parsed.to.value || !parsed.weight.value || !parsed.volume.value) {
@@ -224,7 +225,7 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
             await data1CHandler(reply, chatId, bot, message, sessionState, sessionMap, data1CMap);
         }
     } catch (error) {
-        console.error('❌ Error in audio processing:', error);
+        logger.error('❌ Error in audio processing:', error);
         await bot.editMessageText('Помилка при обробці аудіо. Спробуйте ще раз.', {
             chat_id: chatId,
             message_id: processingMsg.message_id
@@ -250,9 +251,9 @@ async function handleText(bot, text, chatId, sessionMap, data1CMap) {
 
     const cleanedParsed = normalizeFromTo(JSON.parse(replyGPT));
 
-    console.log('===========================PARSED TEXT===========================')
-    console.log(cleanedParsed)
-    console.log('===========================PARSED TEXT===========================')
+    logger.info('===========================PARSED TEXT===========================')
+    logger.info(cleanedParsed)
+    logger.info('===========================PARSED TEXT===========================')
     if(!cleanedParsed.language.confidence) cleanedParsed.language.confidence = true;
 
     const reply = JSON.stringify(cleanedParsed);
@@ -325,13 +326,13 @@ async function handleCorrection(bot, msg, chatId, user, userState, sessionMap) {
             language: "uk"
         });
 
-        console.log(transcription.text)
+        logger.info(transcription.text)
         newText = transcription.text;
     }
 
     const cleanedText = normalizeTextWithFuzzyMatch(newText);
-    console.log(user);
-    console.log(cleanedText);
+    logger.info(user);
+    logger.info(cleanedText);
 
     const combinedPrompt = `
 There is an initial order object with some incorrect data (confidence: false) or (value: null):
@@ -363,7 +364,7 @@ The user specified the following:
     try {
         parsedData = JSON.parse(reply);
     } catch (err) {
-        console.error('❌ Не вдалося розпарсити JSON:', err);
+        logger.error('❌ Не вдалося розпарсити JSON:', err);
         await bot.sendMessage(chatId, `Оновлені дані:\n${reply}`, {
             reply_markup: {
                 inline_keyboard: [
@@ -400,7 +401,7 @@ The user specified the following:
 
 
 function formatShippingInfo(data) {
-    console.log(data)
+    logger.info(data)
     const {
         from,
         to,
@@ -446,9 +447,9 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
     if(!language) lng = {value: 'uk-UA', confidence: true}
     else lng = language
 
-    console.log('==================== USER LANGUAGE =============================')
-    console.log(lng)
-    console.log('==================== USER LANGUAGE =============================')
+    logger.info('==================== USER LANGUAGE =============================')
+    logger.info(lng)
+    logger.info('==================== USER LANGUAGE =============================')
 
     if (!from.value || !to.value || !volume.value || !weight.value) {
         return bot.sendMessage(chatId, 'Проблема з прорахунком. Немає всіх даних!');
@@ -472,9 +473,9 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
     }
 
     const resultPrice = await connectTo1C(data);
-    console.log('============RESULT FORM 1C===============')
-    console.log(resultPrice)
-    console.log('============RESULT FORM 1C===============')
+    logger.info('============RESULT FORM 1C===============')
+    logger.info(resultPrice)
+    logger.info('============RESULT FORM 1C===============')
 
 
     if (resultPrice.status === 'ok' && resultPrice.successfully) {
@@ -511,7 +512,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
 
             const replyGPT = gptResponse.choices[0].message.content.replace(/```json|```/g, '').trim();
 
-            console.log(replyGPT)
+            logger.info(replyGPT)
 
             await createAudio(bot, replyGPT, chatId, lng);
             return await sendInfo(bot, chatId, sessionMap);
@@ -604,15 +605,15 @@ async function createAudio(bot, text, chatId, language) {
             try {
                 // Directly send the audio buffer to Telegram
                 await bot.sendVoice(chatId, fs.createReadStream(filePath));
-                console.log(`Audio sent to Telegram bot.`);
+                logger.info(`Audio sent to Telegram bot.`);
             } catch (telegramError) {
-                console.error(`Error sending audio to Telegram:`, telegramError);
+                logger.error(`Error sending audio to Telegram:`, telegramError);
             }
 
             fs.unlinkSync(filePath);
         }
         else {
-            console.log(chunk.text);
+            logger.info(chunk.text);
         }
     }
 }

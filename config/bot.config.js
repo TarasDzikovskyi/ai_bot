@@ -3,6 +3,8 @@ const TelegramBot = require('node-telegram-bot-api');
 const { OpenAI } = require('openai');
 const {setupMessageHandler, } = require('../handlers/messageHandler')
 const {setupCallbackQueryHandler} = require('../handlers/callbackQueryHandler')
+const {log4js} = require("../utils/logger");
+const logger = log4js.getLogger('ai-bot');
 
 let bot = null;
 // Initialize the bot with the token from environment variables
@@ -20,16 +22,16 @@ const data1CMap = new Map();
 
 const startBot = async () => {
     try {
-        console.log('🤖 Bot is running...');
+        logger.info('🤖 Bot is running...');
 
 
         if (bot) {
             bot.removeAllListeners();
             try {
                 await bot.stopPolling();
-                console.log('Previous bot instance stopped');
+                logger.info('Previous bot instance stopped');
             } catch (err) {
-                console.log('No active polling to stop');
+                logger.error('No active polling to stop');
             }
         }
 
@@ -45,21 +47,21 @@ const startBot = async () => {
 
 
         bot.on('polling_error', async (e) => {
-            console.error('Polling error:', e);
+            logger.error('Polling error:', e);
             await bot.sendMessage(440063207, `Polling error: ${JSON.stringify(e)}`);
             await restartBot();
         });
 
         bot.on('webhook_error', async (e) => {
-            console.error('Webhook error:', e);
+            logger.error('Webhook error:', e);
             await bot.sendMessage(440063207, `Webhook error: ${JSON.stringify(e)}`);
         });
 
         await bot.startPolling();
-        console.log('Bot started successfully and is polling for messages');
+        logger.info('Bot started successfully and is polling for messages');
 
     } catch (e) {
-        console.error('Error starting bot:', e);
+        logger.error('Error starting bot:', e);
         await bot.sendMessage(440063207, `Start bot error: ${JSON.stringify(e)}`);
         await restartBot();
     }
@@ -68,16 +70,16 @@ const startBot = async () => {
 
 async function restartBot() {
     try {
-        console.log('Restarting bot...');
+        logger.info('Restarting bot...');
 
         // Clean up current instance
         if (bot) {
             bot.removeAllListeners();
             try {
                 await bot.stopPolling();
-                console.log('Bot polling stopped');
+                logger.info('Bot polling stopped');
             } catch (err) {
-                console.error('Error stopping polling:', err);
+                logger.error('Error stopping polling:', err);
             }
         }
 
@@ -87,17 +89,17 @@ async function restartBot() {
         // sessionMap.clear();
 
         // Wait before restart
-        console.log('Waiting 10 seconds before restart...');
+        logger.info('Waiting 10 seconds before restart...');
         setTimeout(() => {
             startBot().catch((err) => {
-                console.error('Error restarting bot:', err);
+                logger.error('Error restarting bot:', err);
                 // Try again after another delay if restart fails
                 setTimeout(() => startBot().catch(console.error), 10000);
             });
         }, 10000);
 
     } catch (err) {
-        console.error('Error in restart function:', err);
+        logger.error('Error in restart function:', err);
         // Fallback restart attempt
         setTimeout(() => startBot().catch(console.error), 15000);
     }
@@ -117,7 +119,7 @@ const botMiddleware = (req, res, next) => {
         req.bot = getBot();
         next();
     } catch (error) {
-        console.error('Bot middleware error:', error);
+        logger.error('Bot middleware error:', error);
         res.status(500).json({ error: 'Bot not available' });
     }
 };

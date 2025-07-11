@@ -1,10 +1,11 @@
 const JSONdb = require("simple-json-db");
 const db = new JSONdb('people.json');
-
+const {log4js} = require("../utils/logger");
+const logger = log4js.getLogger('ai-bot');
 
 module.exports.approveUser = async (req, res, next) => {
     try {
-        console.log(req.body)
+        logger.info(req.body)
         const bot = req.bot;
 
         const {status, access_allowed, user} = req.body;

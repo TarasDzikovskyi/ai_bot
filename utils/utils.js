@@ -4,7 +4,8 @@ const axios = require('axios');
 const fuzz = require('fuzzball');
 const { ports, cities, skipWords } = require('../constants');
 const {writeFile} = require("fs");
-
+const {log4js} = require("../utils/logger");
+const logger = log4js.getLogger('ai-bot');
 
 async function downloadFile(url, filename) {
     const directoryPath = path.join(__dirname, '..', 'audio');
@@ -117,7 +118,7 @@ function normalizeTextWithFuzzyMatch(text) {
                 if (score >= 75) {
                     const matchedVariant = allVariants.find(v => v.searchText === bestMatch);
 
-                    console.log(matchedVariant)
+                    logger.info(matchedVariant)
                     if (matchedVariant) {
                         // const reg = new RegExp(`\\b${escapeRegExp(word)}\\b`, 'gi');
                         const reg = new RegExp(word, 'gi');
@@ -279,10 +280,10 @@ function createWavHeader(dataLength, options) {
 function saveBinaryFile(fileName, content) {
     writeFile(fileName, content, 'utf8', (err) => {
         if (err) {
-            console.error(`Error writing file ${fileName}:`, err);
+            logger.error(`Error writing file ${fileName}:`, err);
             return;
         }
-        console.log(`File ${fileName} saved to file system.`);
+        logger.info(`File ${fileName} saved to file system.`);
     });
 }
 

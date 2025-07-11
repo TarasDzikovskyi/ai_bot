@@ -1,7 +1,8 @@
 const axios = require("axios");
 const https = require('https');
 const {data1C_auth, data1C_host} = require("../constants");
-
+const {log4js} = require("../utils/logger");
+const logger = log4js.getLogger('ai-bot');
 
 const connectTo1C = async (data) => {
     try {
@@ -20,13 +21,13 @@ const connectTo1C = async (data) => {
             })
 
 
-        console.log({status: response.status, data: response.data})
+        logger.info({status: response.status, data: response.data})
         return await response.data;
 
     } catch (e) {
-        console.log(e)
-        console.log(e.response?.data);
-        console.log(e.response?.status);
+        logger.error(e)
+        logger.error(e.response?.data);
+        logger.error(e.response?.status);
         return {status: 'NOT OK', code: e.status}
     }
 }

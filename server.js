@@ -9,6 +9,8 @@ const { rateLimit } = require('express-rate-limit');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const expressFileUpload = require('express-fileupload');
+const {log4js} = require("./utils/logger");
+const logger = log4js.getLogger('ai-bot');
 
 const app = express();
 const port = process.env.PORT || 8088;
@@ -35,7 +37,7 @@ const limiter = rateLimit({
 
 const corsOptions = {
     origin: (origin, callback) => {
-        console.log({origin});
+        logger.info({origin});
         // if (constants.allowedCorsOrigins.includes(origin) || !origin) {
             callback(null, true);
         // } else {
@@ -75,10 +77,10 @@ const startApp = async () => {
         // await setupCallbackQueryHandler(bot(), userState, dialogStates, sessionMap);
 
         app.listen(port, () => {
-            console.log(`Server running on port ${port}`);
+            logger.info(`Server running on port ${port}`);
         });
     } catch (error) {
-        console.error('Failed to start app:', error);
+        logger.error('Failed to start app:', error);
         process.exit(1);
     }
 };

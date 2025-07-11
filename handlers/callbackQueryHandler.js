@@ -2,7 +2,8 @@ const { showItemsPage } = require('../utils/pagination');
 const {formatShippingInfo, data1CHandler} = require("../services/openai.service");
 const {connectTo1C} = require("../services/data1C.service");
 const constants = require("../constants");
-
+const {log4js} = require("../utils/logger");
+const logger = log4js.getLogger('ai-bot');
 
 function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, data1CMap) {
     bot.on('callback_query', async (query) => {
@@ -68,9 +69,9 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
         }
 
         else if (query.data === 'confirm_correct') {
-            console.log('+++++++++++++++++++++++++++')
-            console.log(user)
-            console.log('+++++++++++++++++++++++++++')
+            logger.info('+++++++++++++++++++++++++++')
+            logger.info(user)
+            logger.info('+++++++++++++++++++++++++++')
 
             if (!user) {
                 await bot.sendMessage(chatId, 'Помилка: дані користувача не знайдено. Спробуйте ще раз.');
@@ -78,7 +79,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
             }
 
             const userData = user?.correctedData || user?.originalData;
-            console.log('➡️ Надсилаємо в 1С:', userData);
+            logger.info('➡️ Надсилаємо в 1С:', userData);
 
             if (!userData) {
                 await bot.sendMessage(chatId, 'Помилка: дані для відправки не знайдено. Спробуйте ще раз.');
@@ -164,7 +165,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
             if(sessionState === 'awaiting_data1c'){
                 sessionMap.delete(chatId);
 
-                console.log(data1CState)
+                logger.info(data1CState)
 
                 const data = {
                     type: "Create_Report",
@@ -178,9 +179,9 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
                 data1CMap.delete(chatId);
                 const response = await connectTo1C(data);
 
-                console.log('===================CREATE REPORT 1C===================');
-                console.log(response);
-                console.log('===================CREATE REPORT 1C===================');
+                logger.info('===================CREATE REPORT 1C===================');
+                logger.info(response);
+                logger.info('===================CREATE REPORT 1C===================');
 
                 if (response.status === 'ok') {
                     const data = {
@@ -222,14 +223,26 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
 
             const response = await connectTo1C(data);
 
-            console.log('===================BOOKING 1C===================');
-            console.log(response);
-            console.log('===================BOOKING 1C===================');
+            logger.info('===================BOOKING 1C===================');
+            logger.info(response);
+            logger.info('===================BOOKING 1C===================');
 
 
             await bot.editMessageReplyMarkup({
                 inline_keyboard: [
                     [{text: '✅ Розміщено', callback_data: 'used'}]
+                ]
+            }, {
+                chat_id: chatId,
+                message_id: query.message.message_id
+            });
+        }
+
+        else if (query.data === 'cancel_booking') {
+
+            await bot.editMessageReplyMarkup({
+                inline_keyboard: [
+                    [{text: '❌ Скасовано', callback_data: 'used'}]
                 ]
             }, {
                 chat_id: chatId,

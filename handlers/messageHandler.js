@@ -3,7 +3,8 @@ const {isLikelyOrder} = require('../utils/utils');
 const {handleAudio, handleText, handleCorrection} = require('../services/openai.service');
 const {ports, cities, allowedTextCommands} = require('../constants')
 const JSONdb = require('simple-json-db');
-
+const {log4js} = require("../utils/logger");
+const logger = log4js.getLogger('ai-bot');
 const {connectTo1C} = require('../services/data1C.service')
 
 let option = {
@@ -125,19 +126,22 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
         const user = userState.get(chatId);
         const contact = msg.contact;
 
-        console.log(msg.text)
-        console.log(chatId)
+        logger.info(msg.text)
+        logger.info(chatId)
+
+        if(!chatId) return
+
 
         const db = new JSONdb('people.json');
         const db_user = db.get(chatId);
-        // console.log(db_user)
+        logger.info(db_user)
 
         if (contact) {
             if (!contact.phone_number.includes('+')) contact.phone_number = `+${contact.phone_number}`;
 
             const db_person = db.get(contact.user_id);
 
-            // console.log(db_person)
+            logger.info(db_person)
 
             if (!db_person) {
                 let person = {};
@@ -216,16 +220,16 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                     await handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap);
                 }
 
-                console.log('=======================================USER===========================================')
+                logger.info('=======================================USER===========================================')
                 if(user && user.datetime) {
                     const oneMinute = 60 * 1000;
                     const isOlderThanOneMinute = Date.now() - user.timestamp > oneMinute;
                     if (isOlderThanOneMinute) {
-                        console.log(user)
+                        logger.info(user)
                         userState.delete(chatId);
                     }
                 }
-                console.log('=======================================USER===========================================')
+                logger.info('=======================================USER===========================================')
 
 
                 if (user && user.isEditing) {
@@ -245,7 +249,7 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
 
                     if(!data1CState) return
 
-                    console.log(data1CState)
+                    logger.info(data1CState)
 
                     const data = {
                         type: "Send_Contact",
@@ -257,9 +261,9 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
 
                     const response = await connectTo1C(data);
 
-                    console.log('===================CONTACT 1C===================');
-                    console.log(response);
-                    console.log('===================CONTACT 1C===================');
+                    logger.info('===================CONTACT 1C===================');
+                    logger.info(response);
+                    logger.info('===================CONTACT 1C===================');
 
                     data1CMap.delete(chatId);
 
@@ -267,6 +271,7 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                         reply_markup: {
                             inline_keyboard: [[
                                 {text: 'Розмістити booking?', callback_data: `booking_${data1CState.doc_id}`},
+                                {text: 'Скасувати', callback_data: `cancel_booking`},
                             ]]
                         }
                     });
@@ -376,7 +381,7 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                 }
             }
         } catch (error) {
-            console.error('❌ Error:', error);
+            logger.error('❌ Error:', error);
             bot.sendMessage(chatId, 'Сталася помилка при обробці повідомлення.');
         }
     });
