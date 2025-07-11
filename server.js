@@ -13,7 +13,7 @@ const {log4js} = require("./utils/logger");
 const logger = log4js.getLogger('ai-bot');
 
 const app = express();
-const port = process.env.PORT || 8088;
+const {port, host} = require('./constants');
 
 
 const getClientKey = (req) => {
@@ -76,7 +76,7 @@ const startApp = async () => {
         // await setupMessageHandler(bot(), userState, dialogStates, sessionMap);
         // await setupCallbackQueryHandler(bot(), userState, dialogStates, sessionMap);
 
-        app.listen(port, () => {
+        app.listen(port, host, () => {
             logger.info(`Server running on port ${port}`);
         });
     } catch (error) {
