@@ -231,7 +231,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
 
 
             const message = `1. Ціна фрахту: ${data.SeaFreight === '' ? 'немає' : data.SeaFreight+'$'}
-2. Ціна авто перевозки: ${data.CFSDoor === '' ? 'немає' : data.CFSDoor+'$'}
+2. Ціна авто перевозки зі складу до дверей: ${data.CFSDoor === '' ? 'немає' : data.CFSDoor+'$'}
 3. Delivery order:  ${data.Delivery === '' ? 'немає' : data.Delivery+'$'}
 4. Т1: ${data.T1 === '' ? 'немає' : data.T1+'$'}
 5. Ціна авто склад - склад:${data.CFSDelivery === '' ? 'немає' : data.CFSDelivery+'$'}
