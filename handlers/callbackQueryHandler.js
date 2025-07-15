@@ -127,13 +127,11 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
             }
         }
 
-        // Скасування
         else if (query.data === 'cancel') {
             dialogStates.delete(chatId);
             await bot.sendMessage(chatId, '❌ Прорахунок скасовано.');
         }
 
-        // Handle pagination
         else if (query.data.startsWith('page:')) {
             const parts = query.data.split(':');
             const type = parts[1];
@@ -156,7 +154,6 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
             }
         }
 
-        // Handle no-operation button (page indicator)
         else if (query.data === 'noop') {
             // Do nothing, just answer the callback query
         }
@@ -209,6 +206,42 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
 
         else if (query.data === 'data1c_info') {
             await bot.sendMessage(chatId, constants.data1c_info)
+        }
+
+        else if (query.data.startsWith('data1c_article')) {
+            const parts = query.data.split('__');
+            const items = parts[1];
+
+            const parsedItems = JSON.parse(items);
+
+            await bot.editMessageReplyMarkup({
+                inline_keyboard: [
+                    [
+                        {text: '✅ Підтвердити', callback_data: 'data1c_confirm'},
+                        {text: '❌ Скасувати', callback_data: 'data1c_cancel'}
+                    ],
+                    [
+                        {text: 'Обов`язково для ознайомлення', callback_data: 'data1c_info'},
+                    ],
+                    [
+                        {text: '✅ Статті переглянуто', callback_data: 'used'}
+                    ]
+                ]
+            }, {
+                chat_id: chatId,
+                message_id: query.message.message_id
+            });
+
+
+            const message = `1. Ціна фрахту: ${parsedItems.SeaFreight === '' ? 'немає' : parsedItems.SeaFreight+'$'}
+2. Ціна авто перевозки: ${parsedItems.CFSDoor === '' ? 'немає' : parsedItems.CFSDoor+'$'}
+3. Delivery order:  ${parsedItems.Delivery === '' ? 'немає' : parsedItems.Delivery+'$'}
+4. Т1: ${parsedItems.T1 === '' ? 'немає' : parsedItems.T1+'$'}
+5. Ціна авто склад - склад:${parsedItems.CFSDelivery === '' ? 'немає' : parsedItems.CFSDelivery+'$'}
+6. Ціна доставки по ПД: ${parsedItems.PDDelivery === '' ? 'немає' : parsedItems.PDDelivery+'$'}
+`;
+
+            await bot.sendMessage(chatId, message)
         }
 
         else if (query.data.startsWith('booking_')) {

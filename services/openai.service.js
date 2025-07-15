@@ -515,7 +515,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
             logger.info(replyGPT)
 
             await createAudio(bot, replyGPT, chatId, lng);
-            return await sendInfo(bot, chatId, sessionMap);
+            return await sendInfo(bot, chatId, sessionMap, Rate.Cost_items);
         } else {
             const formatedText = formatShippingResult(result)
 
@@ -526,7 +526,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
                     parse_mode: 'Markdown'
                 })
             } else await bot.sendMessage(chatId, formatedText, {parse_mode: 'Markdown'})
-            return await sendInfo(bot, chatId, sessionMap);
+            return await sendInfo(bot, chatId, sessionMap, Rate.Cost_items);
         }
 
 
@@ -626,7 +626,7 @@ function cleanText(text) {
     return cleaned.trim();
 }
 
-async function sendInfo(bot, chatId, sessionMap) {
+async function sendInfo(bot, chatId, sessionMap, cost_items) {
     sessionMap.set(chatId, 'awaiting_data1c')
 
     const validityDate = getValidityPeriod();
@@ -642,6 +642,9 @@ async function sendInfo(bot, chatId, sessionMap) {
                 ],
                 [
                     {text: 'Обов`язково для ознайомлення', callback_data: 'data1c_info'},
+                ],
+                [
+                    {text: 'Статті витрат', callback_data: `data1c_article__${JSON.stringify(cost_items)}`},
                 ],
             ],
         },
