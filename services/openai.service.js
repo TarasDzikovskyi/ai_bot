@@ -632,6 +632,8 @@ async function sendInfo(bot, chatId, sessionMap, cost_items) {
     const validityDate = getValidityPeriod();
     const attentionInfo = `Створити OFFER? (ціна актуальна до ${validityDate})`;
 
+    console.log(cost_items)
+
     return bot.sendMessage(chatId, attentionInfo, {
         parse_mode: 'Markdown',
         reply_markup: {
@@ -643,9 +645,9 @@ async function sendInfo(bot, chatId, sessionMap, cost_items) {
                 [
                     {text: 'Обов`язково для ознайомлення', callback_data: 'data1c_info'},
                 ],
-                [
-                    {text: 'Статті витрат', callback_data: `data1c_article__${JSON.stringify(cost_items)}`},
-                ],
+                // [
+                //     {text: 'Статті витрат', callback_data: `data1c_article__${JSON.stringify(cost_items)}`},
+                // ],
             ],
         },
     });
