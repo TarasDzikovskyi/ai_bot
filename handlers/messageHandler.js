@@ -21,7 +21,7 @@ let option = {
 const normalizePort = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const normalizeCity = (str) => str.normalize("NFC").toLowerCase().replace(/[^\p{L}\d\s]/gu, '').toLowerCase();
 
-async function setupMessageHandler(bot, userState, dialogStates, sessionMap, data1CMap) {
+async function setupMessageHandler(bot, userState, dialogStates, sessionMap, data1CMap, dataArticle1CMap) {
     bot.on('inline_query', (query) => {
         const userId = query.from.id;
         const userState = dialogStates.get(userId);
@@ -210,14 +210,14 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
             if (db_user) {
                 if(sessionState !== 'correction' && sessionState !== 'data1c_contact' && !state && !allowedTextCommands.includes(msg.text) && !msg.voice && !msg.audio){
                     sessionMap.set(chatId, 'awaiting_gpt_input');
-                    await handleText(bot, msg.text, chatId, sessionMap, data1CMap);
+                    await handleText(bot, msg.text, chatId, sessionMap, data1CMap, dataArticle1CMap);
                 }
 
                 if (sessionState !== 'correction' && (msg.voice || msg.audio)) {
                     if(sessionState === 'data1c_contact') sessionMap.delete(chatId);
 
                     sessionMap.set(chatId, 'awaiting_gpt_audio');
-                    await handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap);
+                    await handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap, dataArticle1CMap);
                 }
 
                 logger.info('=======================================USER===========================================')

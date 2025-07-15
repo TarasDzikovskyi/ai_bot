@@ -121,7 +121,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
                 }
 
                 const reply = JSON.stringify(data);
-                await data1CHandler(reply, chatId, bot, null, sessionState, sessionMap, data1CMap);
+                await data1CHandler(reply, chatId, bot, null, sessionState, sessionMap, data1CMap, dataArticle1CMap);
 
                 dialogStates.delete(chatId); // Очистити стан
             }
