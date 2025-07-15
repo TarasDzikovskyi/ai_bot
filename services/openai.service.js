@@ -126,7 +126,7 @@ Max 2-4 sentences.
 // Highlight the final cost with a single "*" (not "**").
 
 
-async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap, data1CHandler) {
+async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap, dataArticle1CMap) {
     const sessionState = sessionMap.get(chatId);
     sessionMap.delete(chatId);
 
@@ -222,7 +222,7 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
             const data = formatShippingInfo(reply);
             const message = await bot.sendMessage(chatId, data, {parse_mode: 'Markdown'});
 
-            await data1CHandler(reply, chatId, bot, message, sessionState, sessionMap, data1CMap, data1CHandler);
+            await data1CHandler(reply, chatId, bot, message, sessionState, sessionMap, data1CMap, dataArticle1CMap);
         }
     } catch (error) {
         logger.error('❌ Error in audio processing:', error);
@@ -234,7 +234,7 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
 }
 
 
-async function handleText(bot, text, chatId, sessionMap, data1CMap, data1CHandler) {
+async function handleText(bot, text, chatId, sessionMap, data1CMap, dataArticle1CMap) {
     const sessionState = sessionMap.get(chatId);
     sessionMap.delete(chatId);
 
@@ -270,7 +270,7 @@ ${(!obj.volume.value || !obj.volume.confidence) ? 'Поле "об`єм" неко
     } else {
         const data = formatShippingInfo(reply);
         const processingMsg = await bot.sendMessage(chatId, data, {parse_mode: 'Markdown'});
-        await data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap, data1CHandler);
+        await data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap, dataArticle1CMap);
     }
 
 }
