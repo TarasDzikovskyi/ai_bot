@@ -126,7 +126,7 @@ Max 2-4 sentences.
 // Highlight the final cost with a single "*" (not "**").
 
 
-async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap) {
+async function handleAudio(bot, msg, chatId, userState, sessionMap, data1CMap, data1CHandler) {
     const sessionState = sessionMap.get(chatId);
     sessionMap.delete(chatId);
 
@@ -222,7 +222,7 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
             const data = formatShippingInfo(reply);
             const message = await bot.sendMessage(chatId, data, {parse_mode: 'Markdown'});
 
-            await data1CHandler(reply, chatId, bot, message, sessionState, sessionMap, data1CMap);
+            await data1CHandler(reply, chatId, bot, message, sessionState, sessionMap, data1CMap, data1CHandler);
         }
     } catch (error) {
         logger.error('❌ Error in audio processing:', error);
@@ -234,7 +234,7 @@ ${(!parsed.volume.value || !parsed.volume.confidence) ? 'Поле "об`єм" н
 }
 
 
-async function handleText(bot, text, chatId, sessionMap, data1CMap) {
+async function handleText(bot, text, chatId, sessionMap, data1CMap, data1CHandler) {
     const sessionState = sessionMap.get(chatId);
     sessionMap.delete(chatId);
 
@@ -270,7 +270,7 @@ ${(!obj.volume.value || !obj.volume.confidence) ? 'Поле "об`єм" неко
     } else {
         const data = formatShippingInfo(reply);
         const processingMsg = await bot.sendMessage(chatId, data, {parse_mode: 'Markdown'});
-        await data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap);
+        await data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap, data1CHandler);
     }
 
 }
@@ -440,7 +440,7 @@ ${data.OnlyStorageCFS
 }
 
 
-async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap) {
+async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap, dataArticle1CMap) {
     const {from, to, volume, weight, language} = JSON.parse(reply);
     let lng
 
@@ -482,6 +482,8 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
         // const text = formatShippingResult(resultPrice);
 
         const {status, successfully, Rate, ...result} = resultPrice;
+        dataArticle1CMap.set(chatId, Rate.Cost_items)
+
 
         result.TotalRateCFS = Rate.TotalRateCFS;
         result.TotalRatePD = Rate.TotalRatePD;
@@ -502,6 +504,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
             result.Destination = getUkrainianName(ports, result.Destination)
         }
 
+
         if (sessionState === 'awaiting_gpt_audio') {
             const prompt = getPromptResponse(JSON.stringify(result), lng.value, Rate.OnlyStorageCFS, storage);
 
@@ -515,7 +518,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
             logger.info(replyGPT)
 
             await createAudio(bot, replyGPT, chatId, lng);
-            return await sendInfo(bot, chatId, sessionMap, Rate.Cost_items);
+            return await sendInfo(bot, chatId, sessionMap);
         } else {
             const formatedText = formatShippingResult(result)
 
@@ -526,7 +529,7 @@ async function data1CHandler(reply, chatId, bot, processingMsg, sessionState, se
                     parse_mode: 'Markdown'
                 })
             } else await bot.sendMessage(chatId, formatedText, {parse_mode: 'Markdown'})
-            return await sendInfo(bot, chatId, sessionMap, Rate.Cost_items);
+            return await sendInfo(bot, chatId, sessionMap);
         }
 
 
@@ -626,13 +629,12 @@ function cleanText(text) {
     return cleaned.trim();
 }
 
-async function sendInfo(bot, chatId, sessionMap, cost_items) {
+async function sendInfo(bot, chatId, sessionMap) {
     sessionMap.set(chatId, 'awaiting_data1c')
 
     const validityDate = getValidityPeriod();
     const attentionInfo = `Створити OFFER? (ціна актуальна до ${validityDate})`;
 
-    console.log(cost_items)
 
     return bot.sendMessage(chatId, attentionInfo, {
         parse_mode: 'Markdown',
@@ -645,9 +647,9 @@ async function sendInfo(bot, chatId, sessionMap, cost_items) {
                 [
                     {text: 'Обов`язково для ознайомлення', callback_data: 'data1c_info'},
                 ],
-                // [
-                //     {text: 'Статті витрат', callback_data: `data1c_article__${JSON.stringify(cost_items)}`},
-                // ],
+                [
+                    {text: 'Статті витрат', callback_data: `data1c_article`},
+                ],
             ],
         },
     });

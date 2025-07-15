@@ -18,6 +18,7 @@ const userState = new Map();
 const dialogStates = new Map();
 const sessionMap = new Map();
 const data1CMap = new Map();
+const dataArticle1CMap = new Map();
 
 
 const startBot = async () => {
@@ -42,8 +43,8 @@ const startBot = async () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
 
-        await setupMessageHandler(bot, userState, dialogStates, sessionMap, data1CMap);
-        await setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, data1CMap);
+        await setupMessageHandler(bot, userState, dialogStates, sessionMap, data1CMap, dataArticle1CMap);
+        await setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, data1CMap, dataArticle1CMap);
 
 
         bot.on('polling_error', async (e) => {

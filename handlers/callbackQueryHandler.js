@@ -5,7 +5,7 @@ const constants = require("../constants");
 const {log4js} = require("../utils/logger");
 const logger = log4js.getLogger('ai-bot');
 
-function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, data1CMap) {
+function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, data1CMap, dataArticle1CMap) {
     bot.on('callback_query', async (query) => {
         const chatId = query?.message?.chat?.id || query?.from?.id;
         const user = userState.get(chatId);
@@ -90,7 +90,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
 
             const data = formatShippingInfo(reply);
             const processingMsg = await bot.sendMessage(chatId, data, { parse_mode: 'Markdown' });
-            await data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap);
+            await data1CHandler(reply, chatId, bot, processingMsg, sessionState, sessionMap, data1CMap, dataArticle1CMap);
             userState.delete(chatId); // Очистити стан
         }
 
@@ -209,10 +209,7 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
         }
 
         else if (query.data.startsWith('data1c_article')) {
-            const parts = query.data.split('__');
-            const items = parts[1];
-
-            const parsedItems = JSON.parse(items);
+            const data = dataArticle1CMap.get(chatId)
 
             await bot.editMessageReplyMarkup({
                 inline_keyboard: [
@@ -233,15 +230,17 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
             });
 
 
-            const message = `1. Ціна фрахту: ${parsedItems.SeaFreight === '' ? 'немає' : parsedItems.SeaFreight+'$'}
-2. Ціна авто перевозки: ${parsedItems.CFSDoor === '' ? 'немає' : parsedItems.CFSDoor+'$'}
-3. Delivery order:  ${parsedItems.Delivery === '' ? 'немає' : parsedItems.Delivery+'$'}
-4. Т1: ${parsedItems.T1 === '' ? 'немає' : parsedItems.T1+'$'}
-5. Ціна авто склад - склад:${parsedItems.CFSDelivery === '' ? 'немає' : parsedItems.CFSDelivery+'$'}
-6. Ціна доставки по ПД: ${parsedItems.PDDelivery === '' ? 'немає' : parsedItems.PDDelivery+'$'}
+            const message = `1. Ціна фрахту: ${data.SeaFreight === '' ? 'немає' : data.SeaFreight+'$'}
+2. Ціна авто перевозки: ${data.CFSDoor === '' ? 'немає' : data.CFSDoor+'$'}
+3. Delivery order:  ${data.Delivery === '' ? 'немає' : data.Delivery+'$'}
+4. Т1: ${data.T1 === '' ? 'немає' : data.T1+'$'}
+5. Ціна авто склад - склад:${data.CFSDelivery === '' ? 'немає' : data.CFSDelivery+'$'}
+6. Ціна доставки по ПД: ${data.PDDelivery === '' ? 'немає' : data.PDDelivery+'$'}
 `;
 
             await bot.sendMessage(chatId, message)
+
+            dataArticle1CMap.delete(chatId);
         }
 
         else if (query.data.startsWith('booking_')) {
