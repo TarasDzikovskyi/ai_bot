@@ -230,12 +230,17 @@ function setupCallbackQueryHandler(bot, userState, dialogStates, sessionMap, dat
             });
 
 
-            const message = `1. Ціна фрахту: ${data.SeaFreight === '' ? 'немає' : data.SeaFreight+'$'}
+            const message = `Ціна через склад:
+1. Ціна фрахту: ${data.SeaFreight === '' ? 'немає' : data.SeaFreight+'$'}
 2. Ціна авто перевозки зі складу до дверей: ${data.CFSDoor === '' ? 'немає' : data.CFSDoor+'$'}
-3. Delivery order:  ${data.Delivery === '' ? 'немає' : data.Delivery+'$'}
-4. Т1: ${data.T1 === '' ? 'немає' : data.T1+'$'}
-5. Ціна авто склад - склад:${data.CFSDelivery === '' ? 'немає' : data.CFSDelivery+'$'}
-6. Ціна доставки по ПД: ${data.PDDelivery === '' ? 'немає' : data.PDDelivery+'$'}
+3. Ціна авто склад - склад:${data.CFSDelivery === '' ? 'немає' : data.CFSDelivery+'$'}
+4. Delivery order:  ${data.Delivery === '' ? 'немає' : data.Delivery+'$'}
+
+Ціна доставки по ПД:
+1. Т1: ${data.T1 === '' ? 'немає' : data.T1+'$'}
+2. Ціна доставки по ПД: ${data.PDDelivery === '' ? 'немає' : data.PDDelivery+'$'}
+3. Ціна фрахту: ${data.SeaFreight === '' ? 'немає' : data.SeaFreight+'$'}
+4. Delivery order:  ${data.Delivery === '' ? 'немає' : data.Delivery+'$'}
 `;
 
             await bot.sendMessage(chatId, message)
