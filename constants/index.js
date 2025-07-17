@@ -235,7 +235,10 @@ module.exports = {
 •In case of cancellation booking after cut of  - dead freight  will be apply for LCL / LTL 
 •Loading fee 5 usd per w/m will be apply in case self pick up 
 •Please ALWAYS pay attention to the validity of the offer before ETD, as the tariff may change according to the validity of the offer
-•The customs broker handles clearance and may decline if HS code/documents are unsuitable. Storage fees may apply.`,
+•The customs broker handles clearance and may decline if HS code/documents are unsuitable. Storage fees may apply.
+•All cargo passing through WSC Bilohorodka can only be processed by Boxline brokers.
+•Due to new Chinese custom rules, shipper or sender have the duty to export cargo which is in compliance with national regulations, all the fees will collect from shipper if
+their cargo have problem lead to custom request to return`,
 
 
     supportedLanguages: ['ar-EG', 'en-US', 'fr-FR' ,'id-ID', 'ja-JP', 'pt-BR', 'nl-NL', 'th-TH' ,'vi-VN', 'uk-UA',
