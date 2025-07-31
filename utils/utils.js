@@ -10,7 +10,7 @@ const logger = log4js.getLogger('ai-bot');
 async function downloadFile(url, filename) {
     const directoryPath = path.join(__dirname, '..', 'audio');
 
-    console.log(directoryPath);
+    logger.info(directoryPath);
     await fs.promises.mkdir(directoryPath, {recursive: true});
 
     const filePath = path.join(directoryPath, filename);

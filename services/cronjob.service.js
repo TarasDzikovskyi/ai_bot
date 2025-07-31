@@ -18,7 +18,7 @@ const cron_job = CronJob.from({
 const checkedOldAudio = async () => {
     try {
         const dirPath = path.join(__dirname, '..', 'audio');
-        console.log(dirPath)
+        logger.info(dirPath)
         const files = await fs.readdir(dirPath);
 
         const now = Date.now();

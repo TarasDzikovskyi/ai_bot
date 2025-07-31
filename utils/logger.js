@@ -29,7 +29,7 @@ log4js.configure({
             type: "dateFile",
             filename: path.join(__dirname, '..', '/logs/app.log'),
             pattern: "yyyy-MM-dd", // Шаблон для імен файлів
-            daysToKeep: 2,
+            daysToKeep: 20,
             layout: {
                 type: "pattern",
                 pattern: "%d{yyyy-MM-dd hh:mm:ss} [%p] [%f{2}:%l] %m%n",

@@ -306,7 +306,7 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                     // Сценарій на введення об'єму
                     if (state?.step === 'awaitingVolume') {
                         if (isNaN(parseFloat(msg.text))) return bot.sendMessage(chatId, 'Введіть коректне число (м³):');
-                        state.volume = parseFloat(msg.text);
+                        state.volume = parseFloat(msg.text).toFixed(2);
                         state.step = 'awaitingWeight';
                         return bot.sendMessage(chatId, 'Введіть вагу (кг):');
                     }
@@ -314,7 +314,7 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
                     // Сценарій на введення ваги
                     if (state?.step === 'awaitingWeight') {
                         if (isNaN(parseFloat(msg.text))) return bot.sendMessage(chatId, 'Введіть коректну вагу (кг):');
-                        state.weight = parseFloat(msg.text);
+                        state.weight = parseFloat(msg.text).toFixed(2);
                         state.step = 'awaitingConfirmation';
 
                         const summary = `*Деталі вантажу:*
@@ -323,7 +323,7 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
 ⚖️ *Вага:* ${state.weight} кг
 📐 *Обʼєм:* ${state.volume} м³
 
-Підтвердити замовлення?`;
+Підтвердити прорахунок?`;
 
                         return bot.sendMessage(chatId, summary, {
                             parse_mode: 'Markdown',
