@@ -15,6 +15,10 @@ module.exports = {
     db_password: process.env.DB_PASS || '',
     db_dialect: process.env.DB_DIALECT || '',
 
+    action_secret_key: process.env.ACTION_SECRET_KEY || '',
+    access_secret_key: process.env.ACCESS_SECRET_KEY || '',
+    refresh_secret_key: process.env.REFRESH_SECRET_KEY || '',
+
     allowedCorsOrigins: [''],
 
     skipWords: ['дай', 'будь', 'будьласка', 'ласка', 'нехай', 'тисячі', 'три', 'доставка'],
