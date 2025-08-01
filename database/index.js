@@ -10,12 +10,12 @@ const sequelize = new Sequelize(constants.db_name, constants.db_user, constants.
     // define: {
     //     schema: 'square'
     // },
-    dialectOptions: {
-        ssl: {
-            require: true,
-            rejectUnauthorized: false,
-        },
-    },
+    // dialectOptions: {
+    //     ssl: {
+    //         require: true,
+    //         rejectUnauthorized: false,
+    //     },
+    // },
 });
 
 
