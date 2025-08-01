@@ -3,7 +3,7 @@ const express = require('express');
 // const { setupCommandHandlers } = require('./handlers/commandHandler');
 const { setupMessageHandler } = require('./handlers/messageHandler');
 const { setupCallbackQueryHandler } = require('./handlers/callbackQueryHandler');
-const data1cRouter = require('./routes/data1C.router');
+const {data1CRouter, authRouter, calculatorRouter} = require('./routes');
 const {cron_job} = require('./services/cronjob.service')
 const { rateLimit } = require('express-rate-limit');
 const cors = require('cors');
@@ -11,6 +11,7 @@ const bodyParser = require('body-parser');
 const expressFileUpload = require('express-fileupload');
 const {log4js} = require("./utils/logger");
 const logger = log4js.getLogger('ai-bot');
+const {sequelize} = require('./database');
 
 const app = express();
 const {port, host} = require('./constants');
@@ -20,6 +21,19 @@ const getClientKey = (req) => {
     const accessToken = req.cookies?.access_token;
     return accessToken || req.ip;
 };
+
+async function db_connect() {
+    try {
+        await sequelize.authenticate();
+        // await sequelize.sync({force: true});
+        await sequelize.sync({alter: true});
+        logger.info('Connected to DB successfully');
+    } catch (error) {
+        logger.error('Unable to connect to the database:', error);
+    }
+}
+
+db_connect();
 
 
 const limiter = rateLimit({
@@ -62,7 +76,9 @@ const { bot, userState, dialogStates, sessionMap, botMiddleware, startBot } = re
 
 app.use(botMiddleware);
 
-app.use('/api/data1c', data1cRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/data1c', data1CRouter);
+app.use('/api/calc', calculatorRouter);
 
 
 app.get('/', (req, res) => {

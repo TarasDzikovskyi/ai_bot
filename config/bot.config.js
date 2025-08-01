@@ -120,7 +120,7 @@ const botMiddleware = (req, res, next) => {
         req.bot = getBot();
         next();
     } catch (error) {
-        logger.error('Bot middleware error:', error);
+        logger.error('Bot middlewares error:', error);
         res.status(500).json({ error: 'Bot not available' });
     }
 };

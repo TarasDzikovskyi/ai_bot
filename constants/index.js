@@ -8,6 +8,13 @@ module.exports = {
     data1C_host: process.env.DATA1C_HOST || '',
     data1C_auth: process.env.DATA1C_AUTH || '',
 
+    db_port: process.env.DB_PORT || 5000,
+    db_host: process.env.DB_HOST || '127.0.0.1',
+    db_name: process.env.DB_NAME || '',
+    db_user: process.env.DB_USER || '',
+    db_password: process.env.DB_PASS || '',
+    db_dialect: process.env.DB_DIALECT || '',
+
     allowedCorsOrigins: [''],
 
     skipWords: ['дай', 'будь', 'будьласка', 'ласка', 'нехай', 'тисячі', 'три', 'доставка'],
