@@ -153,6 +153,7 @@ async function setupMessageHandler(bot, userState, dialogStates, sessionMap, dat
 
                 const aiData = {
                     "type":"LCL_SetUser",
+                    "service": "bot",
                     "user": person
                 }
 

@@ -22,6 +22,8 @@ module.exports = {
     access_secret_key: process.env.ACCESS_SECRET_KEY || '',
     refresh_secret_key: process.env.REFRESH_SECRET_KEY || '',
 
+    cafe_path: process.env.CAFE_PATH || '',
+
     allowedCorsOrigins: [''],
 
     skipWords: ['дай', 'будь', 'будьласка', 'ласка', 'нехай', 'тисячі', 'три', 'доставка'],

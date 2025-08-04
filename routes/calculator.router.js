@@ -1,6 +1,10 @@
 const router = require('express').Router();
 
+const {calculatorController} = require('../controllers')
+const authMiddleware = require('../middlewares/auth.middleware');
 
-// router.post('/user/approve', data1cController.approveUser);
+router.use(authMiddleware.verifyToken);
+router.post('/price', calculatorController.getPrice);
+
 
 module.exports = router;

@@ -3,6 +3,7 @@ const {User, OAuth, OAuthAction} = require('../database/models');
 const {jwtService, emailService} = require('../services');
 const {sequelize} = require("../database");
 const {log4js} = require('../utils/logger');
+const {connectTo1C} = require("../services/data1C.service");
 const logger = log4js.getLogger('ai-bot');
 
 
@@ -43,7 +44,20 @@ module.exports.signup = async (req, res, next) => {
             name: name,
             phone_number,
             surname: surname,
+            is_approved: user.is_approved,
         }
+
+        const user1CData = {
+            "type":"LCL_SetUser",
+            "service": "web",
+            "user": {
+                id: plainUser.id,
+                name: `${name} ${surname}`,
+                phone_number,
+            }
+        }
+
+         await connectTo1C(user1CData);
 
         const tokenPair = jwtService.generateTokenPair(payload);
 
@@ -90,6 +104,7 @@ module.exports.signin = async (req, res, next) => {
             phone_number: foundedUser.phone_number,
             name: foundedUser.name,
             surname: foundedUser.surname,
+            is_approved: foundedUser.is_approved,
         }
 
         const tokenPair = jwtService.generateTokenPair(payload);
@@ -252,7 +267,7 @@ module.exports.getProfile = async (req, res, next) => {
             return res.status(404).json({ message: 'Email or password is invalid' })
         }
 
-        const { password, oauth, ...user } = foundedUser;
+        const { password, oauth, updatedAt, ...user } = foundedUser;
 
         logger.info(user);
 

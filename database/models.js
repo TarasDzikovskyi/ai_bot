@@ -8,6 +8,7 @@ const User = sequelize.define('user', {
     email: { type: DataTypes.STRING, unique: true, allowNull: false },
     phone_number: { type: DataTypes.STRING, allowNull: false },
     password: { type: DataTypes.STRING(512), allowNull: false },
+    is_approved: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
 }, {timestamps: true});
 
 const OAuth = sequelize.define('oauth', {

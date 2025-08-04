@@ -78,7 +78,7 @@ app.use(botMiddleware);
 
 app.use('/api/auth', authRouter);
 app.use('/api/data1c', data1CRouter);
-app.use('/api/calc', calculatorRouter);
+app.use('/api/calculator', calculatorRouter);
 
 
 app.get('/', (req, res) => {
