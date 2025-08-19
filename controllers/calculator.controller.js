@@ -30,3 +30,50 @@ module.exports.getPrice = async (req, res, next) => {
 }
 
 
+module.exports.createReport = async (req, res, next) => {
+    try {
+        const {from, to, weight, volume} = req.body;
+        const userId = req.userId;
+
+        const data = {
+            type: "Create_Report",
+            "Origin": from,
+            "Destination": to,
+            "Volume": volume.toString(),
+            "Weight": weight.toString(),
+            userId: '440063207'
+        }
+
+        const data1CResponse = await connectTo1C(data);
+        logger.info(data1CResponse)
+
+        res.status(200).json(data1CResponse)
+    } catch (e) {
+        next(e);
+    }
+}
+
+
+module.exports.getHistory = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+
+        const data = {
+            "type": "History_calculation",
+            "user": {
+                "id": "440063207"
+            }
+        }
+
+        const data1CResponse = await connectTo1C(data);
+
+
+        logger.info(data1CResponse)
+
+        res.status(200).json(data1CResponse)
+    } catch (e) {
+        next(e);
+    }
+}
+
+

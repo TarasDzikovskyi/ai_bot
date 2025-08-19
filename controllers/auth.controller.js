@@ -57,7 +57,7 @@ module.exports.signup = async (req, res, next) => {
             }
         }
 
-         await connectTo1C(user1CData);
+        await connectTo1C(user1CData);
 
         const tokenPair = jwtService.generateTokenPair(payload);
 
