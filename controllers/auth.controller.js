@@ -127,7 +127,7 @@ module.exports.signin = async (req, res, next) => {
         logger.info('Is approved: ', foundedUser.is_approved);
         logger.info('Is payload approved: ', payload.is_approved);
 
-        if(result1C.status === 'ok' && foundedUser.is_approved === false) {
+        if(result1C.status === 'ok' && !foundedUser.is_approved) {
             foundedUser.is_approved = result1C.access_allowed;
 
             await User.update({
