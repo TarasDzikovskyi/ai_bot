@@ -8,19 +8,16 @@ module.exports.getPrice = async (req, res, next) => {
         const {from, to, weight, volume} = req.body;
         const userId = req.userId;
 
-
         const data = {
             "type": 'LCL_Settlement',
             "Origin": from,
             "Destination": to,
             "Volume": volume.toString(),
             "Weight": weight.toString(),
-            "userId": '440063207'
+            "userId": userId
         }
 
         const data1CResponse = await connectTo1C(data);
-
-
         logger.info(data1CResponse)
 
         res.status(200).json(data1CResponse)
@@ -32,7 +29,7 @@ module.exports.getPrice = async (req, res, next) => {
 
 module.exports.createReport = async (req, res, next) => {
     try {
-        const {from, to, weight, volume} = req.body;
+        const {from, to, weight, volume, variant_price} = req.body;
         const userId = req.userId;
 
         const data = {
@@ -41,7 +38,8 @@ module.exports.createReport = async (req, res, next) => {
             "Destination": to,
             "Volume": volume.toString(),
             "Weight": weight.toString(),
-            userId: '440063207'
+            variant_price: variant_price,
+            userId: userId
         }
 
         const data1CResponse = await connectTo1C(data);
@@ -61,7 +59,7 @@ module.exports.getHistory = async (req, res, next) => {
         const data = {
             "type": "History_calculation",
             "user": {
-                "id": "440063207"
+                "id": userId
             }
         }
 

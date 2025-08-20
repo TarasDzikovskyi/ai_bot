@@ -48,7 +48,7 @@ module.exports.signup = async (req, res, next) => {
         }
 
         const user1CData = {
-            "type":"LCL_SetUser",
+            "type": "LCL_SetUser",
             "service": "web",
             "user": {
                 id: plainUser.id,
@@ -57,7 +57,11 @@ module.exports.signup = async (req, res, next) => {
             }
         }
 
-        await connectTo1C(user1CData);
+        const result1C = await connectTo1C(user1CData);
+
+        console.log('=======================================')
+        console.log(result1C)
+        console.log('=======================================')
 
         const tokenPair = jwtService.generateTokenPair(payload);
 
@@ -97,6 +101,21 @@ module.exports.signin = async (req, res, next) => {
             logger.warn('Wrong email or password match');
             return res.status(401).json({ message: 'Email or password is invalid' })
         }
+
+        const user1CData = {
+            "type": "LCL_SetUser",
+            "service": "web",
+            "user": {
+                id: foundedUser.id,
+            }
+        }
+
+        const result1C = await connectTo1C(user1CData);
+
+        console.log('=======================================')
+        console.log(result1C)
+        console.log('=======================================')
+
 
         const payload = {
             id: foundedUser.id,
