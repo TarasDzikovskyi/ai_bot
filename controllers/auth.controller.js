@@ -107,6 +107,8 @@ module.exports.signin = async (req, res, next) => {
             "service": "web",
             "user": {
                 id: foundedUser.id,
+                name: `${foundedUser.name} ${foundedUser.surname}`,
+                phone_number: foundedUser.phone_number,
             }
         }
 
