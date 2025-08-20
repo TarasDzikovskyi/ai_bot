@@ -57,11 +57,7 @@ module.exports.signup = async (req, res, next) => {
             }
         }
 
-        const result1C = await connectTo1C(user1CData);
-
-        console.log('=======================================')
-        console.log(result1C)
-        console.log('=======================================')
+        await connectTo1C(user1CData);
 
         const tokenPair = jwtService.generateTokenPair(payload);
 
@@ -125,7 +121,20 @@ module.exports.signin = async (req, res, next) => {
             phone_number: foundedUser.phone_number,
             name: foundedUser.name,
             surname: foundedUser.surname,
-            is_approved: foundedUser.is_approved,
+            is_approved: result1C.status === 'ok' ? result1C.access_allowed : foundedUser.is_approved,
+        }
+
+        logger.info('Is approved: ', foundedUser.is_approved);
+        logger.info('Is payload approved: ', payload.is_approved);
+
+        if(result1C.status === 'ok' && foundedUser.is_approved === false) {
+            foundedUser.is_approved = result1C.access_allowed;
+
+            await User.update({
+                is_approved: true
+            }, {
+                where: { id: foundedUser.id }
+            })
         }
 
         const tokenPair = jwtService.generateTokenPair(payload);
