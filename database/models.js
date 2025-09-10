@@ -2,14 +2,19 @@ const {DataTypes} = require('sequelize');
 const {sequelize} = require('./index');
 
 const User = sequelize.define('user', {
-    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    //id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
     name: { type: DataTypes.STRING, allowNull: false },
     surname: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, unique: true, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false },
     phone_number: { type: DataTypes.STRING, allowNull: false },
     password: { type: DataTypes.STRING(512), allowNull: false },
     is_approved: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-}, {timestamps: true});
+}, {
+    timestamps: true,
+    indexes: [
+        { unique: true, fields: ['email'] }
+    ]
+});
 
 const OAuth = sequelize.define('oauth', {
     access_token: {type: DataTypes.STRING(1024), required: true, allowNull: false},
