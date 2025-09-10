@@ -25,8 +25,8 @@ const getClientKey = (req) => {
 async function db_connect() {
     try {
         await sequelize.authenticate();
-        await sequelize.sync({force: true});
-        // await sequelize.sync({alter: true});
+        // await sequelize.sync({force: true});
+        await sequelize.sync({alter: true});
         logger.info('Connected to DB successfully');
     } catch (error) {
         logger.error('Unable to connect to the database:', error);
