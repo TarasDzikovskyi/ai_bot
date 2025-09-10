@@ -131,7 +131,7 @@ module.exports.signin = async (req, res, next) => {
             foundedUser.is_approved = result1C.access_allowed;
 
             await User.update({
-                is_approved: true
+                is_approved: result1C.access_allowed
             }, {
                 where: { id: foundedUser.id }
             })
