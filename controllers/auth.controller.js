@@ -1,10 +1,11 @@
 const bcrypt = require('bcrypt')
-const {User, OAuth, OAuthAction} = require('../database/models');
+const {User, OAuth, OAuthAction, GAuth} = require('../database/models');
 const {jwtService, emailService} = require('../services');
 const {sequelize} = require("../database");
 const {log4js} = require('../utils/logger');
 const {connectTo1C} = require("../services/data1C.service");
 const logger = log4js.getLogger('ai-bot');
+const speakeasy = require('speakeasy');
 
 
 module.exports.signup = async (req, res, next) => {
@@ -45,6 +46,7 @@ module.exports.signup = async (req, res, next) => {
             phone_number,
             surname: surname,
             is_approved: user.is_approved,
+            enable_2fa: false,
         }
 
         const user1CData = {
@@ -122,6 +124,7 @@ module.exports.signin = async (req, res, next) => {
             name: foundedUser.name,
             surname: foundedUser.surname,
             is_approved: result1C.status === 'ok' ? result1C.access_allowed : foundedUser.is_approved,
+            enable_2fa: foundedUser.enable_2fa,
         }
 
         logger.info('Is approved: ', foundedUser.is_approved);
@@ -308,6 +311,108 @@ module.exports.getProfile = async (req, res, next) => {
 }
 
 
+module.exports.setup2FA = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        logger.info('Try to setup 2FA ');
+
+        const temp_secret = speakeasy.generateSecret()
+
+        await GAuth.create({
+            token: temp_secret.base32,
+            data: temp_secret,
+            user: userId
+        });
+
+        res.status(200).json({secret: temp_secret.otpauth_url});
+    } catch (e) {
+        next(e)
+    }
+}
+
+
+module.exports.verify2FA = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const {token} = req.body;
+
+        logger.info('Try to verify 2FA ');
+
+        const gauth = await GAuth.findOne({where: {user: userId}, raw: true, nest: true});
+
+        if(!gauth){
+            logger.warn('No 2FA found');
+            return res.status(404).json({message: 'No 2FA found'})
+        }
+
+        const verified = speakeasy.totp.verify({
+            secret: gauth.token,
+            encoding: 'base32',
+            token
+        });
+
+        if (verified) {
+            await User.update({
+                enable_2fa: true
+            }, {
+                where: { id: userId },
+            })
+
+            const user = await User.findByPk(userId, {raw: true, nest: true});
+
+            const { password, ...filteredUser } = user;
+
+            const oauthToken = jwtService.generateTokenPair(filteredUser)
+
+            await OAuth.update({
+                access_token: oauthToken.access_token
+            }, {
+                where: { user: userId },
+            })
+
+            res.status(200).json({verified: true, user: filteredUser, token: oauthToken.access_token})
+        } else {
+            res.status(200).json({verified: false})
+        }
+    } catch (e) {
+        next(e)
+    }
+}
+
+
+module.exports.validate2FA = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+
+        logger.info('Try to validate 2FA ');
+
+        const gauth = await GAuth.findOne({where: {user: userId}, raw: true, nest: true})
+
+        if(!gauth){
+            logger.warn('No 2FA found')
+            return res.status(404).json({message: 'No 2FA found'})
+        }
+
+        const {token} = req.body;
+
+        const tokenValidates = speakeasy.totp.verify({
+            secret: gauth.token,
+            encoding: 'base32',
+            token,
+            window: 1
+        });
+
+        if (tokenValidates) {
+            res.status(200).json({validated: true})
+        } else {
+            res.status(200).json({validated: false})
+        }
+    } catch (e) {
+        next(e)
+    }
+}
+
+
 // module.exports.verifyUser = async (req, res, next) => {
 //     try {
 //         const {code, email, name} = req.body;
@@ -324,3 +429,5 @@ module.exports.getProfile = async (req, res, next) => {
 //         next(e)
 //     }
 // }
+
+

@@ -9,6 +9,7 @@ const User = sequelize.define('user', {
     phone_number: { type: DataTypes.STRING, allowNull: false },
     password: { type: DataTypes.STRING(512), allowNull: false },
     is_approved: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    enable_2fa: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
 }, {
     timestamps: true,
     indexes: [
@@ -23,6 +24,13 @@ const OAuth = sequelize.define('oauth', {
 }, {timestamps: true});
 
 
+const GAuth = sequelize.define('gauth', {
+    token: {type: DataTypes.STRING(1024), required: true, allowNull: false},
+    data: {type: DataTypes.JSONB, required: true, allowNull: false},
+    user: {type: DataTypes.INTEGER, required: true, references: {model: User, key: 'id'}}
+}, {timestamps: true});
+
+
 const OAuthAction = sequelize.define('oauth_action', {
     action_token: {type: DataTypes.STRING(1024), required: true, allowNull: false},
     user: {type: DataTypes.INTEGER, required: true, references: {model: User, key: 'id'}}
@@ -32,7 +40,11 @@ const OAuthAction = sequelize.define('oauth_action', {
 User.hasOne(OAuth, { foreignKey: 'user', as: 'oauth' });
 OAuth.belongsTo(User, { foreignKey: 'user', as: 'userData' });
 
+User.hasOne(GAuth, { foreignKey: 'user', as: 'gauth' });
+GAuth.belongsTo(User, { foreignKey: 'user', as: 'userData' });
+
 
 module.exports.User = User;
 module.exports.OAuth = OAuth;
 module.exports.OAuthAction = OAuthAction;
+module.exports.GAuth = GAuth;

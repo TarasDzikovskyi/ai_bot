@@ -18,4 +18,12 @@ router.post('/reset', authController.resetPassword)
 router.post('/profile', authMiddleware.verifyToken, authController.getProfile)
 
 
+//Google 2FA
+router.get('/2fa/setup', authMiddleware.verifyToken, authController.setup2FA);
+
+router.post('/2fa/verify', authMiddleware.verifyToken, authController.verify2FA);
+
+router.post('/2fa/validate', authMiddleware.verifyToken, authController.validate2FA);
+
+
 module.exports = router;
