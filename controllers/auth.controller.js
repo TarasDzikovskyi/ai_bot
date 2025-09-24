@@ -330,7 +330,6 @@ module.exports.setup2FA = async (req, res, next) => {
         if(created) {
             res.status(200).json({secret: temp_secret.otpauth_url, token: temp_secret.base32});
         } else {
-            console.log(gAuth.data)
             res.status(200).json({secret: gAuth.data.otpauth_ur, token: gAuth.data.base32l});
         }
     } catch (e) {
