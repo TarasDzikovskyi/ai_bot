@@ -325,6 +325,8 @@ module.exports.setup2FA = async (req, res, next) => {
                 token: temp_secret.base32,
                 data: temp_secret,
             },
+            raw: true,
+            nest: true
         });
 
         console.log(created)
