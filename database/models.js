@@ -26,7 +26,7 @@ const OAuth = sequelize.define('oauth', {
 
 const GAuth = sequelize.define('gauth', {
     token: {type: DataTypes.STRING(1024), required: true, allowNull: false},
-    data: {type: DataTypes.JSONB, required: true, allowNull: false},
+    data: {type: DataTypes.JSON, required: true, allowNull: false},
     user: {type: DataTypes.INTEGER, required: true, references: {model: User, key: 'id'}}
 }, {timestamps: true});
 
