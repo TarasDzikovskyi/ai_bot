@@ -315,16 +315,24 @@ module.exports.setup2FA = async (req, res, next) => {
     try {
         const userId = req.userId;
         logger.info('Try to setup 2FA ');
+        const temp_secret = speakeasy.generateSecret({
+            name: 'Boxline-Calculator',
+        })
 
-        const temp_secret = speakeasy.generateSecret()
-
-        await GAuth.create({
-            token: temp_secret.base32,
-            data: temp_secret,
-            user: userId
+        const [gAuth, created] = await GAuth.findOrCreate({
+            where: { user: userId },
+            defaults: {
+                token: temp_secret.base32,
+                data: temp_secret,
+            },
         });
 
-        res.status(200).json({secret: temp_secret.otpauth_url});
+        if(created) {
+            res.status(200).json({secret: temp_secret.otpauth_url});
+        } else {
+            console.log(gAuth.data)
+            res.status(200).json({secret: gAuth.data.otpauth_url});
+        }
     } catch (e) {
         next(e)
     }
