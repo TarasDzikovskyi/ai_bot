@@ -316,7 +316,7 @@ module.exports.setup2FA = async (req, res, next) => {
         const userId = req.userId;
         logger.info('Try to setup 2FA ');
         const temp_secret = speakeasy.generateSecret({
-            name: 'Boxline-Calculator',
+            name: 'BoxLine-Calculator',
         })
 
         const [gAuth, created] = await GAuth.findOrCreate({
