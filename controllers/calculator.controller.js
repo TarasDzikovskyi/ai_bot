@@ -52,6 +52,29 @@ module.exports.createReport = async (req, res, next) => {
 }
 
 
+module.exports.sendContact = async (req, res, next) => {
+    try {
+        const {doc_id, doc_num, contact_msg} = req.body;
+        const userId = req.userId;
+
+        const data = {
+            type: "Send_Contact",
+            doc_id,
+            doc_num,
+            user: userId,
+            contact_msg
+        }
+
+        const data1CResponse = await connectTo1C(data);
+        logger.info(data1CResponse)
+
+        res.status(200).json(data1CResponse)
+    } catch (e) {
+        next(e);
+    }
+}
+
+
 module.exports.getHistory = async (req, res, next) => {
     try {
         const userId = req.userId;

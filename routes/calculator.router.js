@@ -8,6 +8,8 @@ router.post('/price', calculatorController.getPrice);
 
 router.post('/report', calculatorController.createReport);
 
+router.post('/report/contact', calculatorController.sendContact);
+
 router.get('/history', calculatorController.getHistory);
 
 
