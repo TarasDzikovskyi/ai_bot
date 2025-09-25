@@ -4,6 +4,7 @@ const {log4js} = require("../utils/logger");
 const {normalizeTextWithFuzzyMatch, normalizeFromTo} = require("../utils/utils");
 const {getPrompt} = require("../services/openai.service");
 const {OpenAI} = require("openai");
+const {connectTo1C} = require("../services/data1C.service");
 const logger = log4js.getLogger('ai-bot');
 const text_model = 'gpt-4o';
 
@@ -57,6 +58,25 @@ module.exports.getPriceDelivery = async (req, res, next) => {
         const cleanedParsed = normalizeFromTo(JSON.parse(replyGPT));
 
         res.status(200).json({message: 'ok'})
+    } catch (e) {
+        next(e)
+    }
+}
+
+
+module.exports.getPorts = async (req, res, next) => {
+    try {
+        logger.info(req.body)
+
+        const data = {
+            type: "Get_Used_Cities"
+        }
+
+        const result = await connectTo1C(data);
+
+        console.log(result)
+
+        res.status(200).json(result)
     } catch (e) {
         next(e)
     }
