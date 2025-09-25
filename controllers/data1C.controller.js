@@ -64,7 +64,7 @@ module.exports.getPriceDelivery = async (req, res, next) => {
 }
 
 
-module.exports.getPorts = async (req, res, next) => {
+module.exports.getAvailableCities = async (req, res, next) => {
     try {
         logger.info(req.body)
 
@@ -74,9 +74,11 @@ module.exports.getPorts = async (req, res, next) => {
 
         const result = await connectTo1C(data);
 
-        console.log(result)
-
-        res.status(200).json(result)
+        if(result.status === 'ok') {
+            res.status(200).json(result.Used_Cities)
+        } else {
+            res.status(400).json('Bad request.')
+        }
     } catch (e) {
         next(e)
     }
