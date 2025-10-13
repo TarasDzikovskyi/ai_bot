@@ -47,6 +47,7 @@ module.exports.signup = async (req, res, next) => {
             surname: surname,
             is_approved: user.is_approved,
             enable_2fa: false,
+            access_fca: false,
         }
 
         const user1CData = {
@@ -132,6 +133,8 @@ module.exports.signin = async (req, res, next) => {
 
         logger.info('Is approved: ', foundedUser.is_approved);
         logger.info('Is payload approved: ', payload.is_approved);
+
+        foundedUser.access_fca = result1C.access_FCA;
 
         if(result1C.status === 'ok' && !foundedUser.is_approved) {
             foundedUser.is_approved = result1C.access_allowed;
