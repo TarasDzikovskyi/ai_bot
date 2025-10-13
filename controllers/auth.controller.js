@@ -110,6 +110,8 @@ module.exports.signin = async (req, res, next) => {
             }
         }
 
+        console.log(user1CData)
+
         const result1C = await connectTo1C(user1CData);
 
         console.log('=======================================')
