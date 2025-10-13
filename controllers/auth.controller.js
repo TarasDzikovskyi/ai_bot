@@ -110,7 +110,7 @@ module.exports.signin = async (req, res, next) => {
             }
         }
 
-        console.log(user1CData)
+        console.log(`Founded User ID: ${foundedUser.id}`)
 
         const result1C = await connectTo1C(user1CData);
 
@@ -127,6 +127,7 @@ module.exports.signin = async (req, res, next) => {
             surname: foundedUser.surname,
             is_approved: result1C.status === 'ok' ? result1C.access_allowed : foundedUser.is_approved,
             enable_2fa: foundedUser.enable_2fa,
+            access_fca: result1C.access_FCA,
         }
 
         logger.info('Is approved: ', foundedUser.is_approved);
