@@ -10,6 +10,7 @@ const User = sequelize.define('user', {
     password: { type: DataTypes.STRING(512), allowNull: false },
     is_approved: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     enable_2fa: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    access_fca: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
 }, {
     timestamps: true,
     indexes: [

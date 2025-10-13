@@ -134,7 +134,16 @@ module.exports.signin = async (req, res, next) => {
         logger.info('Is approved: ', foundedUser.is_approved);
         logger.info('Is payload approved: ', payload.is_approved);
 
-        foundedUser.access_fca = result1C.access_FCA;
+        if(foundedUser.access_fca !== result1C.access_FCA){
+            await User.update({
+                access_fca: result1C.access_FCA
+            }, {
+                where: { id: foundedUser.id }
+            })
+
+            foundedUser.access_fca = result1C.access_FCA;
+        }
+
 
         if(result1C.status === 'ok' && !foundedUser.is_approved) {
             foundedUser.is_approved = result1C.access_allowed;
@@ -145,6 +154,8 @@ module.exports.signin = async (req, res, next) => {
                 where: { id: foundedUser.id }
             })
         }
+
+
 
         const tokenPair = jwtService.generateTokenPair(payload);
 
