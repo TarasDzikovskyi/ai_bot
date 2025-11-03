@@ -12,7 +12,7 @@ router.post('/report/contact', calculatorController.sendContact);
 
 router.get('/history', calculatorController.getHistory);
 
-router.post('port/fca', calculatorController.checkFCA)
+router.post('/port/fca', calculatorController.checkFCA)
 
 
 module.exports = router;
