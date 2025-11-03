@@ -98,3 +98,27 @@ module.exports.getHistory = async (req, res, next) => {
 }
 
 
+module.exports.checkFCA = async (req, res, next) => {
+    try {
+
+        const {port} = req.body;
+
+        const data = {
+            "type": "FCA_Check",
+            "Origin": {
+                "id": port
+            }
+        }
+
+        const data1CResponse = await connectTo1C(data);
+
+        logger.info(data1CResponse)
+
+        res.status(200).json(data1CResponse)
+
+    } catch (e) {
+        next(e);
+    }
+}
+
+
