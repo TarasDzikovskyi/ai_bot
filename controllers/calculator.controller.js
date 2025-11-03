@@ -105,9 +105,7 @@ module.exports.checkFCA = async (req, res, next) => {
 
         const data = {
             "type": "FCA_Check",
-            "Origin": {
-                "id": port
-            }
+            "Origin": port
         }
 
         const data1CResponse = await connectTo1C(data);
