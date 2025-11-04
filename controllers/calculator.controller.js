@@ -29,7 +29,7 @@ module.exports.getPrice = async (req, res, next) => {
 
 module.exports.createReport = async (req, res, next) => {
     try {
-        const {from, to, weight, volume, variant_price} = req.body;
+        const {from, to, weight, volume, variant_price, delivery_condition, fca_price } = req.body;
         const userId = req.userId;
 
         const data = {
@@ -38,8 +38,10 @@ module.exports.createReport = async (req, res, next) => {
             "Destination": to,
             "Volume": volume.toString(),
             "Weight": weight.toString(),
-            variant_price: variant_price,
-            userId: userId
+            variant_price,
+            delivery_condition,
+            fca_price,
+            userId
         }
 
         const data1CResponse = await connectTo1C(data);
