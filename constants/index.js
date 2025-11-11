@@ -183,6 +183,7 @@ module.exports = {
         { text: 'Бровари', value: 'BROVARY' },
         { text: 'Вільногірськ', value: 'VOLNOGORSK' },
         { text: 'Вінниця', value: 'VINNYCJA' },
+        { text: 'Гданськ', value: 'GDANSK' },
         { text: 'Дніпро', value: 'DNIPRO' },
         { text: 'Дрогобич', value: 'DROHOBYCH' },
         { text: 'Енергодар', value: 'ENERHODAR' },
