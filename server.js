@@ -3,7 +3,7 @@ const express = require('express');
 // const { setupCommandHandlers } = require('./handlers/commandHandler');
 const { setupMessageHandler } = require('./handlers/messageHandler');
 const { setupCallbackQueryHandler } = require('./handlers/callbackQueryHandler');
-const {data1CRouter, authRouter, calculatorRouter} = require('./routes');
+const {data1CRouter, authRouter, calculatorRouter, amassRouter} = require('./routes');
 const {cron_job} = require('./services/cronjob.service')
 const { rateLimit } = require('express-rate-limit');
 const cors = require('cors');
@@ -79,6 +79,8 @@ app.use(botMiddleware);
 app.use('/api/auth', authRouter);
 app.use('/api/data1c', data1CRouter);
 app.use('/api/calculator', calculatorRouter);
+app.use('/api/amass', amassRouter);
+
 
 
 app.get('/', (req, res) => {
