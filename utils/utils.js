@@ -288,6 +288,23 @@ function saveBinaryFile(fileName, content) {
     });
 }
 
+
+function calculateTotal(data) {
+    const { podChargesVoList, pickupPriceInfo } = data;
+
+    // 1. Сума всіх totalPrice де paymentType === 'CC'
+    const ccTotal = podChargesVoList
+        .filter(item => item.paymentType === 'CC')
+        .reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+
+    // 2. Trucking Fee
+    const truckingFee = pickupPriceInfo?.totalPrice || 0;
+
+    // 3. Загальний total
+    return ccTotal + truckingFee;
+}
+
+
 module.exports = {
     downloadFile,
     chunkArray,
@@ -296,5 +313,6 @@ module.exports = {
     normalizeFromTo,
     getValidityPeriod,
     convertToWav,
-    saveBinaryFile
+    saveBinaryFile,
+    calculateTotal
 };
